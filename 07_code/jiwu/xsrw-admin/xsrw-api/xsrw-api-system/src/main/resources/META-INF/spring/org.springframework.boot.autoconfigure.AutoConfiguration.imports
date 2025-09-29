@@ -1,0 +1,4 @@
+com.xsrw.system.api.factory.RemoteUserFallbackFactory
+com.xsrw.system.api.factory.RemoteLogFallbackFactory
+com.xsrw.system.api.factory.RemoteFileFallbackFactory
+com.xsrw.system.api.factory.RemoteRoleFallbackFactory

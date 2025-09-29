@@ -1,0 +1,45 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper
+        PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.xsrw.wms.inout.mapper.TMergeDeliveryDetailMapper">
+
+    <sql id="selectTMergeDeliveryDetailVo">
+        select tmergedeliverydetail.id, tmergedeliverydetail.merge_delivery_id, tmergedeliverydetail.material_id, tmergedeliverydetail.next_flag, tmergedeliverydetail.predict_count, tmergedeliverydetail.predict_receive_count, tmergedeliverydetail.receive_count, tmergedeliverydetail.small_predict_count, tmergedeliverydetail.small_receive_count, tmergedeliverydetail.remark, tmergedeliverydetail.create_by, tmergedeliverydetail.create_time, tmergedeliverydetail.update_by, tmergedeliverydetail.update_time, tmergedeliverydetail.dept_id, tmergedeliverydetail.dept_name, tmergedeliverydetail.del_flag
+        from t_merge_delivery_detail tmergedeliverydetail
+    </sql>
+
+    <select id="selectTMergeDeliveryDetailList" parameterType="com.xsrw.wms.inout.domain.TMergeDeliveryDetail" resultType="com.xsrw.wms.inout.domain.vo.TMergeDeliveryDetailVO">
+        <include refid="selectTMergeDeliveryDetailVo"/>
+        join t_merge_delivery b on tmergedeliverydetail.merge_delivery_id = b.id and b.del_flag = 0
+        <if test="params.dataScope != null  and params.dataScope != ''">
+            inner join sys_user u on u.user_name = tmergedeliverydetail.create_by and u.status = '0'
+            inner join sys_dept d on u.dept_id = d.dept_id and d.status = '0'
+        </if>
+        <where>
+            tmergedeliverydetail.del_flag = '0'
+            <if test="mergeDeliveryId != null "> and tmergedeliverydetail.merge_delivery_id = #{mergeDeliveryId}</if>
+            <if test="materialId != null "> and tmergedeliverydetail.material_id = #{materialId}</if>
+            <if test="nextFlag != null  and nextFlag != ''"> and tmergedeliverydetail.next_flag = #{nextFlag}</if>
+            <if test="predictCount != null "> and tmergedeliverydetail.predict_count = #{predictCount}</if>
+            <if test="predictReceiveCount != null "> and tmergedeliverydetail.predict_receive_count = #{predictReceiveCount}</if>
+            <if test="receiveCount != null "> and tmergedeliverydetail.receive_count = #{receiveCount}</if>
+            <if test="smallPredictCount != null "> and tmergedeliverydetail.small_predict_count = #{smallPredictCount}</if>
+            <if test="smallReceiveCount != null "> and tmergedeliverydetail.small_receive_count = #{smallReceiveCount}</if>
+        </where>
+        <!-- 数据范围过滤 -->
+        ${params.dataScope}
+    </select>
+
+    <delete id="deleteTMergeDeliveryDetailById" parameterType="Long">
+        update t_merge_delivery_detail set del_flag = '1' where id = #{id}
+    </delete>
+
+    <delete id="deleteTMergeDeliveryDetailByIds" parameterType="String">
+        update t_merge_delivery_detail set del_flag = '1' where id in
+        <foreach item="id" collection="array" open="(" separator="," close=")">
+            #{id}
+        </foreach>
+    </delete>
+
+</mapper>

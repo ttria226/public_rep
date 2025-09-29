@@ -1,0 +1,46 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper
+PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+"http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.xsrw.wms.inout.mapper.TTaskMergeMapper">
+
+    <sql id="selectTTaskMergeVo">
+        select ttaskmerge.id, ttaskmerge.merge_delivery_id, ttaskmerge.merge_delivery_detail_id, ttaskmerge.material_id, ttaskmerge.predict_count, ttaskmerge.actual_count, ttaskmerge.status, ttaskmerge.stock_id, ttaskmerge.wcs_id, ttaskmerge.remark, ttaskmerge.create_by, ttaskmerge.create_time, ttaskmerge.update_by, ttaskmerge.update_time, ttaskmerge.dept_id, ttaskmerge.dept_name, ttaskmerge.del_flag, ttaskmerge.tray_id, ttaskmerge.location_id
+        from t_task_merge ttaskmerge
+    </sql>
+
+    <select id="selectTTaskMergeList" parameterType="com.xsrw.wms.inout.domain.TTaskMerge" resultType="com.xsrw.wms.inout.domain.TTaskMerge">
+        <include refid="selectTTaskMergeVo"/>
+        <if test="params.dataScope != null  and params.dataScope != ''">
+            inner join sys_user u on u.user_name = ttaskmerge.create_by and u.status = '0'
+            inner join sys_dept d on u.dept_id = d.dept_id and d.status = '0'
+        </if>
+        <where>
+            ttaskmerge.del_flag = '0'
+            <if test="mergeDeliveryId != null "> and ttaskmerge.merge_delivery_id = #{mergeDeliveryId}</if>
+            <if test="mergeDeliveryDetailId != null "> and ttaskmerge.merge_delivery_detail_id = #{mergeDeliveryDetailId}</if>
+            <if test="materialId != null "> and ttaskmerge.material_id = #{materialId}</if>
+            <if test="predictCount != null "> and ttaskmerge.predict_count = #{predictCount}</if>
+            <if test="actualCount != null "> and ttaskmerge.actual_count = #{actualCount}</if>
+            <if test="status != null  and status != ''"> and ttaskmerge.status = #{status}</if>
+            <if test="stockId != null "> and ttaskmerge.stock_id = #{stockId}</if>
+            <if test="wcsId != null "> and ttaskmerge.wcs_id = #{wcsId}</if>
+            <if test="trayId != null "> and ttaskmerge.tray_id = #{trayId}</if>
+            <if test="locationId != null "> and ttaskmerge.location_id = #{locationId}</if>
+        </where>
+        <!-- 数据范围过滤 -->
+        ${params.dataScope}
+    </select>
+
+    <delete id="deleteTTaskMergeById" parameterType="Long">
+         update t_task_merge set del_flag = '1' where id = #{id}
+    </delete>
+
+    <delete id="deleteTTaskMergeByIds" parameterType="String">
+        update t_task_merge set del_flag = '1' where id in
+        <foreach item="id" collection="array" open="(" separator="," close=")">
+            #{id}
+        </foreach>
+    </delete>
+
+</mapper>

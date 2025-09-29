@@ -1,0 +1,350 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper
+        PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.xsrw.wms.inout.mapper.TAdvanceDeliveryDetailMapper">
+
+    <sql id="selectTAdvanceDeliveryDetailVo">
+        select a.id, a.advance_delivery_id, a.material_id, a.next_flag, a.plan_date, a.predict_date, a.predict_count, a.receive_count, a.detection_count, a.detection_fail_type, a.detection_fail_remark, a.registration_count, a.produced_date, a.batch_code, a.remark, a.create_by, a.create_time, a.update_by, a.update_time, a.dept_id, a.dept_name, a.del_flag
+        from t_advance_delivery_detail a
+    </sql>
+
+    <select id="selectTAdvanceDeliveryDetailList" parameterType="com.xsrw.wms.inout.domain.dto.TAdvanceDeliveryDetailDTO"
+            resultType="com.xsrw.wms.inout.domain.vo.TAdvanceDeliveryDetailVO">
+        select
+            a.id,
+            a.advance_delivery_id,
+            a.material_id,
+            a.next_flag,
+            a.plan_date,
+            a.predict_date,
+            a.predict_count,
+            a.receive_count,
+            a.detection_count,
+            a.detection_fail_type,
+            a.detection_fail_remark,
+            a.registration_count,
+            a.putaway_count,
+            a.produced_date,
+            a.batch_code,
+            a.remark,
+            a.create_by,
+            a.create_time,
+            b.code as advanceDeliveryCode,
+            b.`type` as advanceDeliveryType,
+            b.create_by as maker,
+            m.code as materialCode,
+            m.name as materialName,
+            m.unit_price AS price,
+            m.unit_id,
+            m.specifications,
+            tu.name as unitName
+            <if test="printStatus != null and printStatus != ''">,(select count(*) from t_material_detail md where md.del_flag = '0' and md.advance_registration_id = a.id and md.rfid_head is not null) as returnCount </if>
+        from t_advance_delivery_detail a
+        left join t_advance_delivery b on a.advance_delivery_id = b.id
+        left join t_material m on a.material_id = m.id
+        left join t_unit tu on m.unit_id = tu.id
+        <if test="params.dataScope != null  and params.dataScope != ''">
+            inner join sys_user u on u.user_name = a.create_by and u.status = '0'
+            inner join sys_dept d on u.dept_id = d.dept_id and d.status = '0'
+        </if>
+        <where>
+            a.del_flag = '0' and a.detection_count > 0
+            <if test="advanceDeliveryId != null ">and a.advance_delivery_id =
+                #{advanceDeliveryId}
+            </if>
+            <if test="materialId != null ">and a.material_id = #{materialId}</if>
+            <if test="nextFlag != null  and nextFlag != ''">and a.next_flag = #{nextFlag}</if>
+            <if test="planDate != null ">and a.plan_date = #{planDate}</if>
+            <if test="predictDate != null ">and a.predict_date = #{predictDate}</if>
+            <if test="predictCount != null ">and a.predict_count = #{predictCount}</if>
+            <if test="receiveCount != null ">and a.receive_count = #{receiveCount}</if>
+            <if test="detectionCount != null ">and a.detection_count = #{detectionCount}</if>
+            <if test="detectionFailType != null  and detectionFailType != ''">and
+                a.detection_fail_type = #{detectionFailType}
+            </if>
+            <if test="detectionFailRemark != null  and detectionFailRemark != ''">and
+                a.detection_fail_remark = #{detectionFailRemark}
+            </if>
+            <if test="registrationCount != null ">and a.registration_count = #{registrationCount}
+            </if>
+            <if test="producedDate != null ">and a.produced_date = #{producedDate}</if>
+            <if test="batchCode != null  and batchCode != ''">and a.batch_code like concat('%',
+                #{batchCode}, '%')
+            </if>
+            <if test="advanceDeliveryCode != null  and advanceDeliveryCode != ''">and b.code like concat('%',
+                #{advanceDeliveryCode}, '%')
+            </if>
+            <if test="advanceDeliveryType != null  and advanceDeliveryType != ''">and
+                b.`type` = #{advanceDeliveryType}
+            </if>
+            <if test="deliveryModule != null and deliveryModule != ''"> and b.delivery_module = #{deliveryModule}</if>
+            <if test="inStatusList != null and inStatusList.size()>0">
+                <foreach collection="inStatusList" item="status" open=" and a.next_flag in (" close=")" separator=",">
+                    #{status}
+                </foreach>
+            </if>
+            <if test="materialCode != null and materialCode != ''">
+                and m.code like concat('%',#{materialCode},'%')
+            </if>
+            <if test="materialName != null and materialName != ''">
+                and m.name like concat('%',#{materialName},'%')
+            </if>
+        </where>
+        <!-- 数据范围过滤 -->
+        ${params.dataScope}
+        order by a.create_time desc
+    </select>
+
+    <select id="selectPrintDetailList" parameterType="com.xsrw.wms.inout.domain.dto.TAdvanceDeliveryDetailDTO"
+            resultType="com.xsrw.wms.inout.domain.vo.TAdvanceDeliveryDetailVO">
+        select
+        a.id,
+        a.advance_delivery_id,
+        a.material_id,
+        a.next_flag,
+        a.plan_date,
+        a.predict_count,
+        a.receive_count,
+        a.detection_count,
+        a.registration_count,
+        a.putaway_count,
+        a.produced_date,
+        a.batch_code,
+        a.create_by,
+        a.create_time,
+        b.code as advanceDeliveryCode,
+        m.code as materialCode,
+        m.name as materialName,
+        m.unit_price AS price,
+        m.unit_id,
+        m.specifications,
+        tu.name as unitName,
+        ifnull(sum(md.rfid_count),0) as returnCount
+        from t_advance_delivery_detail a
+        left join t_advance_delivery b on a.advance_delivery_id = b.id
+        left join t_material m on a.material_id = m.id
+        left join t_unit tu on m.unit_id = tu.id
+        left join t_material_detail md on md.advance_registration_id = a.id and md.rfid_head is not null and md.del_flag = '0'
+        <if test="params.dataScope != null  and params.dataScope != ''">
+            inner join sys_user u on u.user_name = a.create_by and u.status = '0'
+            inner join sys_dept d on u.dept_id = d.dept_id and d.status = '0'
+        </if>
+        <where>
+            a.del_flag = '0'
+            and b.status not in ('1','8','9') and b.delivery_module = '0'
+            and a.next_flag in ( '0' , '1','3')
+            <if test="advanceDeliveryId != null ">and a.advance_delivery_id =
+                #{advanceDeliveryId}
+            </if>
+            <if test="materialId != null ">and a.material_id = #{materialId}</if>
+            <if test="nextFlag != null  and nextFlag != ''">and a.next_flag = #{nextFlag}</if>
+            <if test="planDate != null ">and a.plan_date = #{planDate}</if>
+            <if test="predictDate != null ">and a.predict_date = #{predictDate}</if>
+            <if test="predictCount != null ">and a.predict_count = #{predictCount}</if>
+            <if test="receiveCount != null ">and a.receive_count = #{receiveCount}</if>
+            <if test="detectionCount != null ">and a.detection_count = #{detectionCount}</if>
+            <if test="detectionFailType != null  and detectionFailType != ''">and
+                a.detection_fail_type = #{detectionFailType}
+            </if>
+            <if test="detectionFailRemark != null  and detectionFailRemark != ''">and
+                a.detection_fail_remark = #{detectionFailRemark}
+            </if>
+            <if test="registrationCount != null ">and a.registration_count = #{registrationCount}
+            </if>
+            <if test="producedDate != null ">and a.produced_date = #{producedDate}</if>
+            <if test="batchCode != null  and batchCode != ''">and a.batch_code like concat('%',
+                #{batchCode}, '%')
+            </if>
+            <if test="advanceDeliveryCode != null  and advanceDeliveryCode != ''">and b.code like concat('%',
+                #{advanceDeliveryCode}, '%')
+            </if>
+            <if test="advanceDeliveryType != null  and advanceDeliveryType != ''">and
+                b.`type` = #{advanceDeliveryType}
+            </if>
+             <if test="materialCode != null  and materialCode != ''">and
+                m.code like concat ('%',#{materialCode}, '%')
+            </if>
+             <if test="materialName != null  and materialName != ''">and
+                m.name like concat ('%',#{materialName}, '%')
+            </if>
+            <if test="deliveryModule != null and deliveryModule != ''"> and b.delivery_module = #{deliveryModule}</if>
+        </where>
+        <!-- 数据范围过滤 -->
+        ${params.dataScope}
+        group by a.id having a.predict_count > returnCount
+        order by a.create_time desc
+    </select>
+
+    <delete id="deleteTAdvanceDeliveryDetailById" parameterType="Long">
+         update t_advance_delivery_detail set del_flag = '1' where id = #{id}
+    </delete>
+
+    <delete id="deleteTAdvanceDeliveryDetailByIds" parameterType="String">
+        update t_advance_delivery_detail set del_flag = '1' where id in
+        <foreach item="id" collection="array" open="(" separator="," close=")">
+            #{id}
+        </foreach>
+    </delete>
+
+    <select id="selectDetailListByDeliveryId" resultType="com.xsrw.wms.inout.domain.vo.TAdvanceDeliveryDetailVO">
+        select
+            a.id,
+            a.advance_delivery_id as advanceDeliveryId,
+            a.material_id as materialId,
+            a.next_flag as nextFlag,
+            a.plan_date as planDate,
+            a.predict_date as predictDate,
+            a.predict_count as predictCount,
+            a.receive_count as receiveCount,
+            a.detection_count as detectionCount,
+            a.putaway_count,
+            a.detection_fail_type as detectionFailType,
+            a.detection_fail_remark as detectionFailRemark,
+            a.registration_count as registrationCount,
+            a.produced_date as producedDate,
+            a.batch_code as batchCode,
+            a.remark,
+            a.create_by as createBy,
+            a.create_time as createTime,
+            a.dept_id as deptId,
+            a.dept_name as deptName,
+            a.expire_date as expireDate,
+            b.code as materialCode ,
+            b.finance_voucher_no,
+            b.name as materialName,
+            b.unit_price AS price,
+            c.name as unitName
+        from t_advance_delivery_detail a
+        left join t_material b on a.material_id = b.id
+        left join t_unit c on b.unit_id = c.id
+        where a.del_flag = '0' and a.advance_delivery_id in
+        <foreach item="deliveryId" collection="deliveryIds" open="(" separator="," close=")">
+            #{deliveryId}
+        </foreach>
+    </select>
+
+    <delete id="deleteDetailByDeliveryIds">
+        update t_advance_delivery_detail set del_flag = '1' where advance_delivery_id in
+        <foreach item="deliveryId" collection="deliveryIds" open="(" separator="," close=")">
+            #{deliveryId}
+        </foreach>
+    </delete>
+
+    <select id="getDetailByMaterial" resultType="com.xsrw.wms.inout.domain.vo.TAdvanceDeliveryDetailVO">
+        select
+            b.id,
+            b.advance_delivery_id,
+            b.material_id ,
+            b.batch_code ,
+            b.predict_count ,
+            b.receive_count
+        from
+            t_advance_delivery a
+        left join t_advance_delivery_detail b on
+            a.id = b.advance_delivery_id
+        where
+            b.material_id = #{materilaId}
+            and b.batch_code = #{batchCode}
+            and b.del_flag = '0'
+            and a.del_flag = '0'
+            and a.status in ('2','5')
+        order by b.create_time
+    </select>
+
+    <select id="getMaterialCountList" resultType="com.xsrw.wms.api.domain.vo.TMaterialDetailApiVO">
+        select b.material_id , b.batch_code ,
+        sum(b.predict_count) as predict_count,
+        sum(b.receive_count) as receive_count
+        from t_advance_delivery a
+        left join t_advance_delivery_detail b on a.id = b.advance_delivery_id
+        where b.del_flag = '0' and a.del_flag = '0' and a.status in ('2','5')
+        group by b.material_id, b.batch_code
+    </select>
+
+    <select id="selectInfoById" resultType="com.xsrw.wms.inout.domain.vo.TAdvanceDeliveryDetailVO">
+        select a.id, a.advance_delivery_id, a.material_id, a.next_flag, a.plan_date, a.predict_date, a.predict_count, a.receive_count, a.detection_count,a.putaway_count , a.detection_fail_type, a.detection_fail_remark, a.registration_count, a.produced_date, a.batch_code, a.remark, a.create_by, a.create_time, a.dept_id, a.dept_name,
+               tad.audit_remark,tad.code  as advanceDeliveryCode,tad.status, tad.`type` as advanceDeliveryType,tad.remark as advanceDeliveryRemark,tad.new_local
+        from t_advance_delivery_detail a
+        left join t_advance_delivery tad on a.advance_delivery_id  = tad.id
+        where a.id = #{id}
+    </select>
+
+    <select id="getDeliveryNoCheckStatusByIds" resultType="int">
+        select count(*)
+        from t_advance_delivery_detail a
+        left join t_advance_delivery tad on a.advance_delivery_id = tad.id
+        where tad.status not in ('3','10') and a.id in
+        <foreach item="id" collection="ids" open="(" separator="," close=")">
+            #{id}
+        </foreach>
+    </select>
+
+    <update id="updateStatusByDeliveryIds">
+        update t_advance_delivery_detail set next_flag = #{status} where advance_delivery_id in
+        <foreach item="deliveryId" collection="deliveryIds" open="(" separator="," close=")">
+            #{deliveryId}
+        </foreach>
+    </update>
+
+    <select id="selectDeliveryStatistics" resultType="com.xsrw.wms.report.domain.vo.DeliveryReportVO">
+        select
+            cu.name contactsUnitName,
+            cu.contact_person contactsUnitContact,
+            sum(ifnull(tadd.registration_count,0)) registrationCount,
+            sum(ifnull(tadd.receive_count,0)) receiveCount
+        from t_contacts_unit cu
+        left join t_material m on cu.id=m.contacts_unit_id and m.del_flag=0
+        left join t_advance_delivery_detail tadd on m.id=tadd.material_id and tadd.del_flag=0
+        where cu.del_flag=0
+        <if test="contactsUnitName!=null and contactsUnitName!=''">
+            and cu.name like concat('%',#{contactsUnitName},'%')
+        </if>
+        <if test="contactsUnitContact!=null and contactsUnitContact!=''">
+            and cu.contact_person like concat('%',#{contactsUnitContact},'%')
+        </if>
+        group by cu.id
+        order by cu.id desc
+    </select>
+
+    <select id="materialQualificationRateList" resultType="com.xsrw.wms.report.domain.vo.MaterialQualificationRateVO">
+        select
+            cu.name contactsUnitName,
+            cu.contact_person contactsUnitContact,
+            sum(ifnull(tadd.registration_count,0)) registrationCount,
+            sum(ifnull(tadd.detection_count,0)) detectionCount,
+            DATE_FORMAT(tadd.create_time, '%Y年%m月') AS month
+        from t_contacts_unit cu
+        left join t_material m on cu.id=m.contacts_unit_id and m.del_flag=0
+        left join t_advance_delivery_detail tadd on m.id=tadd.material_id and tadd.del_flag=0
+        where cu.del_flag=0
+        <if test="contactsUnitName!=null and contactsUnitName!=''">
+            and cu.name like concat('%',#{contactsUnitName},'%')
+        </if>
+        <if test="contactsUnitContact!=null and contactsUnitContact!=''">
+            and cu.contact_person like concat('%',#{contactsUnitContact},'%')
+        </if>
+        group by cu.id,month
+        order by cu.id desc
+
+    </select>
+
+    <select id="getRegistrationList" resultType="com.xsrw.wms.inout.domain.vo.TAdvanceDeliveryDetailVO">
+        SELECT
+            t2.`code` AS material_code,
+            t2.`name` AS material_name,
+            t3.`name` AS unit_name,
+            t1.batch_code,
+            t1.registration_count,
+            '1' AS detection_fail_type,
+            t1.detection_fail_status,
+            t1.id
+        FROM
+            t_advance_delivery_detail t1
+                LEFT JOIN t_material t2 ON t1.material_id = t2.id
+                LEFT JOIN t_unit t3 ON t2.unit_id = t3.id
+        WHERE
+            t1.advance_delivery_id = #{value}
+          AND t1.del_flag = '0'
+    </select>
+</mapper>

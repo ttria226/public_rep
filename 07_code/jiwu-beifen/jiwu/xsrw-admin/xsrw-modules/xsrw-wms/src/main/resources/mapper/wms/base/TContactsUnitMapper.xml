@@ -1,0 +1,41 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper
+PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+"http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.xsrw.wms.base.mapper.TContactsUnitMapper">
+
+    <sql id="selectTContactsUnitVo">
+        select tcontactsunit.id, tcontactsunit.name, tcontactsunit.type, tcontactsunit.address, tcontactsunit.phone, tcontactsunit.remark, tcontactsunit.create_by, tcontactsunit.create_time, tcontactsunit.update_by, tcontactsunit.update_time, tcontactsunit.dept_id, tcontactsunit.dept_name, tcontactsunit.del_flag, tcontactsunit.contact_person, tcontactsunit.contact_person_id
+        from t_contacts_unit tcontactsunit
+    </sql>
+
+    <select id="selectTContactsUnitList" parameterType="com.xsrw.wms.base.domain.TContactsUnit" resultType="com.xsrw.wms.base.domain.TContactsUnit">
+        <include refid="selectTContactsUnitVo"/>
+        <if test="params.dataScope != null  and params.dataScope != ''">
+            inner join sys_user u on u.user_name = tcontactsunit.create_by and u.status = '0'
+            inner join sys_dept d on u.dept_id = d.dept_id and d.status = '0'
+        </if>
+        <where>
+            tcontactsunit.del_flag = '0'
+            <if test="name != null  and name != ''"> and tcontactsunit.name like concat('%', #{name}, '%')</if>
+            <if test="type != null  and type != ''"> and tcontactsunit.type = #{type}</if>
+            <if test="address != null  and address != ''"> and tcontactsunit.address like concat('%', #{address}, '%')</if>
+            <if test="phone != null  and phone != ''"> and tcontactsunit.phone = #{phone}</if>
+        </where>
+        <!-- 数据范围过滤 -->
+        ${params.dataScope}
+        order by tcontactsunit.create_time desc
+    </select>
+
+    <delete id="deleteTContactsUnitById" parameterType="Long">
+         update t_contacts_unit set del_flag = '1' where id = #{id}
+    </delete>
+
+    <delete id="deleteTContactsUnitByIds" parameterType="String">
+        update t_contacts_unit set del_flag = '1' where id in
+        <foreach item="id" collection="array" open="(" separator="," close=")">
+            #{id}
+        </foreach>
+    </delete>
+
+</mapper>

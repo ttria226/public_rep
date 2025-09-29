@@ -1,0 +1,312 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper
+        PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.xsrw.wms.base.mapper.TLocationMapper">
+    <sql id="selectTLocationVo">
+        select tlocation.id, tlocation.code, tlocation.name, tlocation.area_id, tlocation.reservoir_id, tlocation.category_id, tlocation.deposit_category_id, tlocation.unit_id, tlocation.same_material_flag, tlocation.same_batch_flag, tlocation.upper_limit, tlocation.location_row, tlocation.location_column, tlocation.location_plies, tlocation.goods_allocation_status, tlocation.status, tlocation.location_type, tlocation.pallet_num, tlocation.remark, tlocation.create_by, tlocation.create_time, tlocation.update_by, tlocation.update_time, tlocation.dept_id, tlocation.dept_name, tlocation.del_flag
+        ,tlocation.extention_frist_id,tlocation.extention_type,tlocation.pallet_node_id
+        from t_location tlocation
+    </sql>
+
+    <select id="selectTLocationList" parameterType="com.xsrw.wms.base.domain.TLocation" resultType="com.xsrw.wms.base.domain.vo.TLocationVO">
+        select tl.id, tl.area_id, tl.reservoir_id,tl.code, tl.name, tl.status, tl.location_type, tl.create_by, tl.create_time, tl.update_by, tl.update_time, tl.remark,
+        tl.location_row,tl.location_column,tl.location_plies,tl.same_batch_flag,tl.same_material_flag,tl.upper_limit,
+        tl.goods_allocation_status,tl.pallet_num,tl.extention_type,tl.pallet_node_id,tl.extention_frist_id,tl.erp_code,
+        ta.name as areaName,tr.name as reservoirName,tc.name as categoryName ,dtc.name as depositCategoryName,
+        tu.name as unitName,
+        tgs.name as goodShelfName
+        from t_location tl
+        left join t_area ta on ta.id = tl.area_id
+        left join t_reservoir tr on tr.id = tl.reservoir_id
+        left join t_good_shelf tgs on tl.good_shelf_id = tgs.id
+        left join t_category tc on tl.category_id = tc.id
+        left join t_category dtc on tl.deposit_category_id = dtc.id
+        left join t_unit tu on tl.unit_id = tu.id
+        <if test="params.dataScope != null  and params.dataScope != ''">
+            inner join sys_user u on u.user_name = tl.create_by and u.status = '0'
+            inner join sys_dept d on u.dept_id = d.dept_id and d.status = '0'
+        </if>
+        <where>
+            tl.del_flag = '0'
+            <if test="id != null  and id != ''">and tl.id = #{id}</if>
+            <if test="code != null  and code != ''">and tl.code = #{code}</if>
+            <if test="name != null  and name != ''">and tl.name like concat('%', #{name}, '%')</if>
+            <if test="status != null  and status != ''">and tl.status = #{status}</if>
+            <if test="areaId != null ">and tl.area_id = #{areaId}</if>
+            <if test="reservoirId != null ">and tl.reservoir_id = #{reservoirId}</if>
+            <if test="locationRow != null ">and tl.location_row = #{locationRow}</if>
+            <if test="locationColumn != null ">and tl.location_column = #{locationColumn}</if>
+            <if test="locationPlies != null ">and tl.location_plies = #{locationPlies}</if>
+            <if test="startRow != null ">and tl.location_row &gt;= #{startRow}</if>
+            <if test="startColumn != null ">and tl.location_column &gt;= #{startColumn}</if>
+            <if test="startPlies != null ">and tl.location_plies &gt;= #{startPlies}</if>
+            <if test="endRow != null ">and tl.location_row &lt;= #{endRow}</if>
+            <if test="endColumn != null ">and tl.location_column &lt;= #{endColumn}</if>
+            <if test="endPlies != null ">and tl.location_plies &lt;= #{endPlies}</if>
+            <if test="goodsAllocationStatus != null and goodsAllocationStatus != ''">and tl.goods_allocation_status =
+                #{goodsAllocationStatus}
+            </if>
+            <if test="palletNum != null and palletNum != ''">
+                AND tl.pallet_num like concat('%', #{palletNum}, '%')
+            </if>
+            <if test="sameMaterialFlag != null and sameMaterialFlag != ''">and tl.same_material_flag =
+                #{sameMaterialFlag}
+            </if>
+            <if test="sameBatchFlag != null and sameBatchFlag != ''">and tl.same_batch_flag = #{sameBatchFlag}</if>
+            <if test="categoryId != null ">and tl.category_id = #{categoryId}</if>
+            <if test="unitId != null ">and tl.unit_id = #{unitId}</if>
+            <if test="locationType != null and locationType != ''">and tl.location_type = #{locationType}</if>
+            <if test="palletNodeId != null and palletNodeId != ''">and tl.pallet_node_id = #{palletNodeId}</if>
+            <if test="extentionFristId != null and extentionFristId != ''">and tl.extention_frist_id = #{extentionFristId}</if>
+            <if test="extentionType != null and extentionType != ''">and tl.extention_type = #{extentionType}</if>
+        </where>
+        <!-- 数据范围过滤 -->
+        ${params.dataScope}
+        order by tl.id desc
+    </select>
+
+    <delete id="deleteTLocationById" parameterType="Long">
+         update t_location set del_flag = '1' where id = #{id}
+    </delete>
+
+    <delete id="deleteTLocationByIds" parameterType="String">
+        update t_location set del_flag = '1' where id in
+        <foreach item="id" collection="array" open="(" separator="," close=")">
+            #{id}
+        </foreach>
+    </delete>
+
+    <update id="deleteTLocationStatusByReservoirIds">
+        update t_location tl
+        left join t_reservoir tr on tr.id = tl.reservoir_id
+        set tl.status = #{status}
+         where tr.id = #{id}
+    </update>
+
+    <update id="plcUpdate" parameterType="com.xsrw.wms.base.domain.dto.TLocationDTO">
+        update t_location
+        <trim prefix="SET" suffixOverrides=",">
+            <if test="areaId != null">area_id = #{areaId},</if>
+            <if test="reservoirId != null">reservoir_id = #{reservoirId},</if>
+            <if test="categoryId != null">category_id = #{categoryId},deposit_category_id = #{categoryId},</if>
+            <if test="unitId != null">unit_id = #{unitId},</if>
+            <if test="sameMaterialFlag != null">same_material_flag = #{sameMaterialFlag},</if>
+            <if test="sameBatchFlag != null">same_batch_flag = #{sameBatchFlag},</if>
+            <if test="upperLimit != null">upper_limit = #{upperLimit},</if>
+            <if test="goodShelfId != null">good_shelf_id = #{goodShelfId},</if>
+        </trim>
+        <where>
+            del_flag = '0'
+            <if test="locationRow != null">and location_row = #{locationRow}</if>
+            <if test="locationColumn != null">and location_column = #{locationColumn}</if>
+            <if test="locationPlies != null">and location_plies = #{locationPlies}</if>
+            <if test="startRow != null ">and location_row &gt;= #{startRow}</if>
+            <if test="startColumn != null ">and location_column &gt;= #{startColumn}</if>
+            <if test="startPlies != null ">and location_plies &gt;= #{startPlies}</if>
+            <if test="endRow != null ">and location_row &lt;= #{endRow}</if>
+            <if test="endColumn != null ">and location_column &lt;= #{endColumn}</if>
+            <if test="endPlies != null ">and location_plies &lt;= #{endPlies}</if>
+        </where>
+    </update>
+
+    <select id="plcCount" parameterType="com.xsrw.wms.base.domain.TLocation" resultType="java.util.HashMap">
+        select max(location_row) as maxRow,max(location_column) as maxColumn,max(location_plies) as maxPlies from
+        t_location tl
+        <where>
+            tl.del_flag = '0'
+            <if test="code != null  and code != ''">and tl.code = #{code}</if>
+            <if test="name != null  and name != ''">and tl.name like concat('%', #{name}, '%')</if>
+            <if test="status != null  and status != ''">and tl.status = #{status}</if>
+            <if test="areaId != null ">and tl.area_id = #{areaId}</if>
+            <if test="reservoirId != null ">and tl.reservoir_id = #{reservoirId}</if>
+        </where>
+    </select>
+
+    <select id="selectOtherList" resultType="com.xsrw.wms.base.domain.TLocation">
+        <include refid="selectTLocationVo"/>
+        where del_flag = '0'
+        and area_id = #{areaId}
+        and goods_allocation_status = '1'
+        and ifnull(pallet_num, '') = ''
+    </select>
+    <!--获取库位使用情况-->
+    <select id="getLocationUsedInfo" resultType="java.util.Map">
+        SELECT tl.location_row as locationRow,COUNT(1) as totalcount,
+            (SELECT COUNT(1)  FROM t_location tll   WHERE   tll.del_flag='0' and tll.`status`='1'
+             AND tll.location_row=tl.location_row AND tll.location_type='0' AND tll.goods_allocation_status!=1 AND tll.reservoir_id=#{reservoirId}
+             ) as inUser
+        FROM t_location tl WHERE tl.reservoir_id=#{reservoirId}  AND tl.del_flag='0' AND tl.location_type='0'
+        GROUP BY tl.location_row
+    </select>
+    <!--库位实时情况-->
+    <select id="getLocationCurrentDetail" resultType="java.util.Map">
+        SELECT tll.id,IFNULL(tll.`code`,'') as code,tll.name,tll.location_row as locationRow,tll.location_column as locationColumn,
+               tll.location_plies as locationPlies,tll.goods_allocation_status as goodsAllocationStatus,tll.`status`,
+               IFNULL(tll.pallet_num,'') as palletNum,IFNULL(ts.is_freeze,0) as isFreeze
+        FROM t_location tll
+        LEFT JOIN (SELECT location_id,is_freeze from t_stock WHERE  del_flag='0' GROUP BY location_id,is_freeze ) ts on ts.location_id=tll.id
+        WHERE  tll.del_flag='0'  AND tll.location_row=#{locationRow}  AND tll.reservoir_id=#{reservoirId} AND tll.location_type='0'
+        ORDER BY tll.location_plies ASC
+    </select>
+    <select id="getLocationStock" resultType="java.util.Map">
+        SELECT tm.`code`,tm.`name`,tsm.library_count as `count`,tsm.available_count  as availableCount,t.id as stockId,t.material_id as materialId,tu.`name` as unitName
+        FROM t_stock t
+        INNER JOIN t_material tm on t.material_id=tm.id AND tm.del_flag='0'
+        INNER JOIN t_stock_main tsm on tsm.material_id=tm.id  AND tm.del_flag='0'
+        LEFT JOIN t_unit tu on tu.id=tm.unit_id
+        WHERE t.location_id=#{locationId} AND t.del_flag='0'
+    </select>
+    <select id="getLocationListByReservoirId" resultType="java.util.Map">
+        SELECT CONCAT(IFNULL(tl.location_row ,''),'','排') as locationRowName,IFNULL(tl.location_row ,'') as locationRow
+        FROM t_location tl WHERE tl.reservoir_id=#{reservoirId} AND tl.del_flag='0'
+        GROUP BY tl.location_row
+    </select>
+
+    <update id="updateNullById">
+        update t_location set good_shelf_id = null where id = #{tLocation.id}
+    </update>
+
+    <select id="getRecommendedLocationList" resultType="com.xsrw.wms.base.domain.TLocation">
+        select tl.id, tl.code, tl.name, tl.area_id, tl.reservoir_id, tl.category_id, tl.deposit_category_id, tl.unit_id, tl.same_material_flag, tl.same_batch_flag, tl.upper_limit, tl.location_row, tl.location_column, tl.location_plies, tl.goods_allocation_status, tl.status, tl.location_type, tl.pallet_num,
+        tl.extention_type,tl.extention_frist_id,tl.pallet_node_id
+        from t_location tl
+        left join t_tray b on tl.id = b.location_id
+        where tl.del_flag = '0' and b.id is null and (tl.pallet_num is null or tl.pallet_num = '')
+        <if test="loca.code != null  and loca.code != ''">and tl.code = #{loca.code}</if>
+        <if test="loca.name != null  and loca.name != ''">and tl.name like concat('%', #{loca.name}, '%')</if>
+        <if test="loca.status != null  and loca.status != ''">and tl.status = #{loca.status}</if>
+        <if test="loca.areaId != null ">and tl.area_id = #{loca.areaId}</if>
+        <if test="loca.reservoirId != null ">and tl.reservoir_id = #{loca.reservoirId}</if>
+        <if test="loca.locationRow != null ">and tl.location_row = #{loca.locationRow}</if>
+        <if test="loca.locationColumn != null ">and tl.location_column = #{loca.locationColumn}</if>
+        <if test="loca.locationPlies != null ">and tl.location_plies = #{loca.locationPlies}</if>
+        <if test="loca.goodsAllocationStatus != null and loca.goodsAllocationStatus != ''">and tl.goods_allocation_status =
+            #{loca.goodsAllocationStatus}
+        </if>
+        <if test="loca.palletNum != null and loca.palletNum != ''">and tl.pallet_num = #{loca.palletNum}</if>
+        <if test="loca.sameMaterialFlag != null and loca.sameMaterialFlag != ''">and tl.same_material_flag =
+            #{loca.sameMaterialFlag}
+        </if>
+        <if test="loca.sameBatchFlag != null and loca.sameBatchFlag != ''">and tl.same_batch_flag = #{loca.sameBatchFlag}</if>
+        <if test="loca.categoryId != null ">and tl.category_id = #{loca.categoryId}</if>
+        <if test="loca.depositCategoryId != null ">and (tl.deposit_category_id = #{loca.depositCategoryId} or tl.deposit_category_id is null)</if>
+        <if test="loca.unitId != null ">and tl.unit_id = #{loca.unitId}</if>
+        <if test="loca.locationType != null and loca.locationType != ''">and tl.location_type = #{loca.locationType}</if>
+        <if test="loca.floorType != null and loca.floorType != ''">and tl.floor_type = #{loca.floorType}</if>
+        <if test="removeIds != null and removeIds.size()>0">
+            and tl.id not in
+            <foreach collection="removeIds" item="removeId" separator="," open="(" close=")">
+                #{removeId}
+            </foreach>
+        </if>
+        order by tl.extention_type desc,location_plies,location_column, location_row
+        <!--        <choose>-->
+<!--            <when test="loca.depositCategoryId != null">order by tl.extention_type desc,tl.deposit_category_id desc</when>-->
+<!--            <otherwise>order by tl.extention_type desc</otherwise>-->
+<!--        </choose>-->
+    </select>
+
+
+    <select id="getLocationList" parameterType="com.xsrw.wms.base.domain.dto.TLocationDTO"
+            resultType="com.xsrw.wms.base.domain.vo.TLocationVO">
+        select tl.id, tl.code, tl.name, tl.area_id, tl.reservoir_id, tl.category_id, tl.deposit_category_id, tl.unit_id, tl.same_material_flag, tl.same_batch_flag, tl.upper_limit, tl.location_row, tl.location_column, tl.location_plies, tl.goods_allocation_status, tl.status, tl.location_type, tl.pallet_num,
+        tr.name as reservoirName,b.id as trayId
+        from t_location tl
+        left join t_tray b on tl.id = b.location_id
+        left join t_reservoir tr on tr.id = tl.reservoir_id
+        where tl.del_flag = '0'
+        <if test="id != null  and id != ''">and tl.id = #{id}</if>
+        <if test="code != null  and code != ''">and tl.code = #{code}</if>
+        <if test="name != null  and name != ''">and tl.name like concat('%', #{name}, '%')</if>
+        <if test="status != null  and status != ''">and tl.status = #{status}</if>
+        <if test="areaId != null ">and tl.area_id = #{areaId}</if>
+        <if test="reservoirId != null ">and tl.reservoir_id = #{reservoirId}</if>
+        <if test="locationRow != null ">and tl.location_row = #{locationRow}</if>
+        <if test="locationColumn != null ">and tl.location_column = #{locationColumn}</if>
+        <if test="locationPlies != null ">and tl.location_plies = #{locationPlies}</if>
+        <if test="startRow != null ">and tl.location_row &gt;= #{startRow}</if>
+        <if test="startColumn != null ">and tl.location_column &gt;= #{startColumn}</if>
+        <if test="startPlies != null ">and tl.location_plies &gt;= #{startPlies}</if>
+        <if test="endRow != null ">and tl.location_row &lt;= #{endRow}</if>
+        <if test="endColumn != null ">and tl.location_column &lt;= #{endColumn}</if>
+        <if test="endPlies != null ">and tl.location_plies &lt;= #{endPlies}</if>
+        <if test="goodsAllocationStatus != null and goodsAllocationStatus != ''">and tl.goods_allocation_status =
+            #{goodsAllocationStatus}
+        </if>
+        <if test="palletNum != null and palletNum != ''">and tl.pallet_num = #{palletNum}</if>
+        <if test="sameMaterialFlag != null and sameMaterialFlag != ''">and tl.same_material_flag =
+            #{sameMaterialFlag}
+        </if>
+        <if test="sameBatchFlag != null and sameBatchFlag != ''">and tl.same_batch_flag = #{sameBatchFlag}</if>
+        <if test="categoryId != null ">and tl.category_id = #{categoryId}</if>
+        <if test="unitId != null ">and tl.unit_id = #{unitId}</if>
+        <if test="locationType != null and locationType != ''">and tl.location_type = #{locationType}</if>
+        <if test="ids != null and ids.size() > 0">
+            <foreach collection="ids" item="id" open=" and tl.id in (" separator="," close=")">
+                #{id}
+            </foreach>
+        </if>
+        order by tl.create_time desc
+    </select>
+
+    <select id="frequencyOfLocationList" resultType="com.xsrw.wms.report.domain.vo.FrequencyOfLocationVO">
+        select
+            a.name areaName,
+            r.name reservoirName,
+            gs.name goodShelfName,
+            l.name locationName,
+            count(case sd.type when '1' then 1 else null end) inCount,
+            count(case sd.type when '2' then 1 else null end) outCount
+        from t_location l
+        left join t_good_shelf gs on l.good_shelf_id=gs.id
+        left join t_reservoir r on l.reservoir_id=r.id
+        left join t_area a on l.area_id=a.id
+        left join t_stock_detail sd on l.id=sd.location_id and sd.del_flag='0' and sd.type in('1','2')
+        where l.del_flag='0'
+        <if test="areaId != null ">and l.area_id = #{areaId}</if>
+        <if test="reservoirId != null ">and l.reservoir_id = #{reservoirId}</if>
+        group by l.id
+        order by l.id desc
+    </select>
+
+    <select id="demandCheckList" resultType="com.xsrw.wms.base.domain.vo.DemandCheckVO">
+        select
+            a.name areaName,
+            l.id,
+            r.name reservoirName,
+            gs.name goodShelfName,
+            l.name locationName,
+            l.goods_allocation_status goodsAllocationStatus,
+            l.update_by updateBy,
+            l.update_time updateTime,
+            count(s.id) stockCount
+        from t_location l
+                 left join t_good_shelf gs on l.good_shelf_id=gs.id
+                 left join t_reservoir r on l.reservoir_id=r.id
+                 left join t_area a on l.area_id=a.id
+                 left join t_stock s on l.id=s.location_id and s.del_flag='0'
+        where l.del_flag='0'
+        <if test="areaId!=null">and l.area_id=#{areaId}</if>
+        <if test="reservoirId!=null">and l.reservoir_id=#{reservoirId}</if>
+        <if test="locationId!=null">and l.id=#{locationId}</if>
+        group by l.id
+        order by l.id desc
+    </select>
+
+    <select id="selectByFirstNodeId" resultType="com.xsrw.wms.base.domain.TLocation" parameterType="com.xsrw.wms.base.domain.TLocation">
+        <include refid="selectTLocationVo"></include>
+        where del_flag='0' and extention_type = '1'
+        <if test="locationPlies != null ">and location_plies = #{locationPlies}</if>
+        <if test="extentionFristId != null">and extention_frist_id = #{extentionFristId}</if>
+        limit 1
+    </select>
+
+    <select id="selectTempLocationInfoById" resultType="com.xsrw.wms.base.domain.TLocation" parameterType="com.xsrw.wms.base.domain.TLocation">
+        select tl2.*
+        from t_location tl
+        inner join t_location tl2 on tl.location_plies = tl2.location_plies
+        where tl.id = #{trayId} and tl.del_flag = '0' and tl2.del_flag = '0' and tl2.pallet_node_id = #{tempPallet}
+        limit 1
+    </select>
+</mapper>

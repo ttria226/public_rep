@@ -1,0 +1,50 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns="http://maven.apache.org/POM/4.0.0"
+         xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
+    <parent>
+        <groupId>com.xsrw</groupId>
+        <artifactId>xsrw</artifactId>
+        <version>3.6.2</version>
+    </parent>
+    <modelVersion>4.0.0</modelVersion>
+
+    <modules>
+        <module>xsrw-common-log</module>
+        <module>xsrw-common-core</module>
+        <module>xsrw-common-redis</module>
+        <module>xsrw-common-seata</module>
+        <module>xsrw-common-swagger</module>
+        <module>xsrw-common-security</module>
+        <module>xsrw-common-datascope</module>
+        <module>xsrw-common-datasource</module>
+    </modules>
+
+    <artifactId>xsrw-common</artifactId>
+    <packaging>pom</packaging>
+
+    <description>
+        xsrw-common通用模块
+    </description>
+
+    <dependencies>
+        <dependency>
+            <groupId>com.baomidou</groupId>
+            <artifactId>mybatis-plus-boot-starter</artifactId>
+            <version>${mybatis-plus-boot-starter.version}</version>
+        </dependency>
+        <!-- pagehelper 分页插件 -->
+        <dependency>
+            <groupId>com.github.pagehelper</groupId>
+            <artifactId>pagehelper-spring-boot-starter</artifactId>
+            <version>${pagehelper.boot.version}</version>
+            <exclusions>
+                <exclusion>
+                    <groupId>org.mybatis</groupId>
+                    <artifactId>mybatis</artifactId>
+                </exclusion>
+            </exclusions>
+        </dependency>
+    </dependencies>
+
+
+</project>

@@ -1,0 +1,151 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper
+PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+"http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.xsrw.wms.stock.mapper.TMoveLibraryNewMapper">
+
+   <select id="selectMoveLibraryList" resultType="com.xsrw.wms.stock.domain.vo.MoveLibraryVo">
+       SELECT
+       tml.id,
+       tml. CODE,
+       tml.location_out_id,
+       tl.`name` AS 'location_out_name',
+       tml.location_in_id,
+       tl2.`name` AS 'location_in_name',
+       tml.tray_id,
+       tml.create_time,
+       tt.`code` AS 'zaiju_code',
+       tml.wcs_id,
+       ttw.task_type,
+       ttw.task_status,
+       ttw.tray_code
+       FROM
+       t_move_library tml
+       LEFT JOIN t_tray tt ON tml.tray_id = tt.id
+       LEFT JOIN t_location tl ON tml.location_out_id = tl.id
+       LEFT JOIN t_location tl2 ON tml.location_in_id = tl2.id
+       LEFT JOIN t_task_wcs ttw ON tml.wcs_id = ttw.id
+       WHERE
+       tml.del_flag = 0
+       <if test="tml.zaijuCode != null and tml.zaijuCode != ''">AND tt.code = #{tml.zaijuCode}</if>
+       <if test="tml.code != null and tml.code != ''">AND tml.code = #{tml.code}</if>
+   </select>
+
+    <select id="selectTLocationEmptyList" resultType="com.xsrw.wms.base.domain.vo.TLocationVO">
+        SELECT
+            *
+        FROM
+            t_location
+        WHERE
+                location_plies = (
+                SELECT
+                    location_plies
+                FROM
+                    t_location
+                WHERE
+                    id = #{tld.id}
+            )
+          AND reservoir_id = 33
+          AND goods_allocation_status = 1
+          AND (pallet_num = "" OR pallet_num IS NULL)
+    </select>
+
+
+    <select id="selectMoveLibraryDetails" resultType="com.xsrw.wms.stock.domain.vo.MoveLibraryDetailVo">
+        SELECT
+            tmld.id,
+            tmld.move_library_code,
+            tmld.stock_id,
+            tmld.material_id,
+            tmld.count,
+            tmld.batch_code,
+            tm.`code` AS 'material_code',
+            tm.`name` AS 'material_name',
+            ts.material_id AS 'ts_material_id',
+            ts.batch_code AS 'ts_batch_code',
+            ts.count AS 'ts_count'
+        FROM
+            t_move_library_detail tmld
+                LEFT JOIN t_material tm ON tmld.material_id = tm.id
+                LEFT JOIN t_stock ts ON tmld.stock_id = ts.id
+        WHERE
+            tmld.del_flag = 0
+          AND tmld.move_library_code = #{smld.code}
+    </select>
+
+    <select id="selectTStock" resultType="com.xsrw.wms.stock.domain.TStock">
+        SELECT * FROM t_stock WHERE tray_id = #{sts.trayId} AND del_flag = 0
+    </select>
+
+    <select id="selecttTray" resultType="com.xsrw.wms.base.domain.TTray">
+        SELECT * FROM t_tray WHERE id = #{stt.trayId}
+    </select>
+
+    <select id="selecttLocation" resultType="com.xsrw.wms.base.domain.TLocation">
+        SELECT * FROM t_location WHERE id = #{locationId}
+    </select>
+    
+    <select id="selecttTaskWcs" resultType="Long">
+        SELECT
+            COUNT(*)
+        FROM
+            t_task_wcs ttw
+                LEFT JOIN t_tray tt ON ttw.tray_id = tt.id
+        WHERE
+            ttw.task_status != 3
+        AND tt.tray_category = 1
+        AND ttw.del_flag  = 0
+    </select>
+
+    <select id="selecttLocationTwo"  resultType="com.xsrw.wms.base.domain.TLocation">
+        SELECT
+            *
+        FROM
+            t_location
+        WHERE
+                extention_frist_id = (
+                SELECT
+                    extention_frist_id
+                FROM
+                    t_location
+                WHERE
+                    id = #{twv.locationId}
+            )
+          AND location_plies = (
+            SELECT
+                location_plies
+            FROM
+                t_location
+            WHERE
+                id = #{twv.locationId}
+        )
+          AND extention_type = 2
+
+    </select>
+
+    <select id="selectTaskWcsOut" resultType="com.xsrw.wms.inout.domain.vo.TTaskWcsVO">
+                SELECT
+                    main_task_no
+                FROM
+                    t_task_wcs
+                WHERE
+                    location_id = #{tl.id}
+                  AND task_type = 2
+                  AND (
+                            task_status = 1
+                        OR task_status = 2
+                    )
+    </select>
+
+
+    <select id="selectTaskWcsMove" resultType="com.xsrw.wms.inout.domain.vo.TTaskWcsVO">
+        SELECT
+            *
+        FROM
+            t_task_wcs
+        WHERE
+                main_task_no = #{ttwv.mainTaskNo}
+          AND task_type = 5
+    </select>
+</mapper>
+

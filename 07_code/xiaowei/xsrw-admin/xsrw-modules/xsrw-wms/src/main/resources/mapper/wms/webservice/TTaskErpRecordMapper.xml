@@ -1,0 +1,32 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper
+        PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.xsrw.wms.webservice.mapper.TTaskErpRecordMapper">
+
+    <sql id="selectTTaskWcsRecordVo">
+        SELECT a.id, a.task_wcs_id, a.param_id, a.erp_type, a.send_data, a.accept_data, a.status, a.remark, a.zzdjbm, a.zzdjhh, a.create_by, a.create_time, a.update_by, a.update_time, a.dept_id, a.dept_name, a.del_flag
+        FROM t_task_erp_record a
+    </sql>
+
+    <select id="selectRecordList" parameterType="com.xsrw.wms.webservice.domain.TTaskErpRecord"
+            resultType="com.xsrw.wms.webservice.domain.TTaskErpRecord">
+        <include refid="selectTTaskWcsRecordVo"></include>
+        <if test="params.dataScope != null  and params.dataScope != ''">
+            inner join sys_user u on u.user_name = a.create_by and u.status = '0'
+            inner join sys_dept d on u.dept_id = d.dept_id and d.status = '0'
+        </if>
+        <where>
+            a.del_flag = '0'
+            <if test="taskWcsId != null ">and a.task_wcs_id = #{taskWcsId}</if>
+            <if test="erpType != null  and erpType != ''">and a.erp_type = #{erpType}</if>
+            <if test="sendData != null  and sendData != ''">and a.send_data = #{sendData}</if>
+            <if test="acceptData != null  and acceptData != ''">and a.accept_data = #{acceptData}</if>
+            <if test="status != null  and status != ''">and a.status = #{status}</if>
+        </where>
+        <!-- 数据范围过滤 -->
+        ${params.dataScope}
+        order by a.create_time desc
+    </select>
+
+</mapper>

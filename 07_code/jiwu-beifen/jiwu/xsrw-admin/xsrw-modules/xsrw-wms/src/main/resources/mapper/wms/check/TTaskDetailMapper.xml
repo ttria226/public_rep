@@ -1,0 +1,186 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper
+PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+"http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.xsrw.wms.check.mapper.TTaskDetailMapper">
+
+    <sql id="selectTTaskDetailVo">
+        select ttaskdetail.id, ttaskdetail.task_id, ttaskdetail.material_id, ttaskdetail.predict_count, ttaskdetail.actual_count, ttaskdetail.status, ttaskdetail.tray_id, ttaskdetail.location_id, ttaskdetail.org_location_id, ttaskdetail.duty_personnel, ttaskdetail.batch_number, ttaskdetail.stock_id, ttaskdetail.check_count, ttaskdetail.remark, ttaskdetail.create_by, ttaskdetail.create_time, ttaskdetail.update_by, ttaskdetail.update_time, ttaskdetail.dept_id, ttaskdetail.dept_name, ttaskdetail.del_flag
+        from t_task_detail ttaskdetail
+    </sql>
+
+    <select id="selectTTaskDetailList" parameterType="com.xsrw.wms.check.domain.TTaskDetail" resultType="com.xsrw.wms.check.domain.TTaskDetail">
+        <include refid="selectTTaskDetailVo"/>
+        <if test="params.dataScope != null  and params.dataScope != ''">
+            inner join sys_user u on u.user_name = ttaskdetail.create_by and u.status = '0'
+            inner join sys_dept d on u.dept_id = d.dept_id and d.status = '0'
+        </if>
+        <where>
+            ttaskdetail.del_flag = '0'
+            <if test="taskId != null "> and ttaskdetail.task_id = #{taskId}</if>
+            <if test="materialId != null "> and ttaskdetail.material_id = #{materialId}</if>
+            <if test="predictCount != null "> and ttaskdetail.predict_count = #{predictCount}</if>
+            <if test="actualCount != null "> and ttaskdetail.actual_count = #{actualCount}</if>
+            <if test="status != null  and status != ''"> and ttaskdetail.status = #{status}</if>
+            <if test="trayId != null "> and ttaskdetail.tray_id = #{trayId}</if>
+            <if test="locationId != null "> and ttaskdetail.location_id = #{locationId}</if>
+            <if test="orgLocationId != null "> and ttaskdetail.org_location_id = #{orgLocationId}</if>
+            <if test="dutyPersonnel != null  and dutyPersonnel != ''"> and ttaskdetail.duty_personnel = #{dutyPersonnel}</if>
+            <if test="batchNumber != null  and batchNumber != ''"> and ttaskdetail.batch_number = #{batchNumber}</if>
+            <if test="stockId != null "> and ttaskdetail.stock_id = #{stockId}</if>
+            <if test="checkCount != null "> and ttaskdetail.check_count = #{checkCount}</if>
+        </where>
+        <!-- 数据范围过滤 -->
+        ${params.dataScope}
+    </select>
+
+    <select id="selectTaskDetailList" parameterType="com.xsrw.wms.check.domain.dto.TaskDetailDTO" resultType="com.xsrw.wms.check.domain.vo.TaskDetailVO">
+        select
+        t1.task_id, t1.id, t1.material_id, t1.predict_count, t1.actual_count,
+        t1.status, t1.tray_id, t1.location_id, t1.org_location_id, t1.duty_personnel,
+        t1.batch_number, t1.dept_id, t1.dept_name, t1.stock_id, t1.check_count, t1.create_time,t1.wcs_id,
+        t2.code as taskCode,t2.task_type,t2.task_status as taskStatus,
+        t3.code as trayCode,t2.check_type
+        from t_task_detail t1
+        left join t_task t2 on t1.task_id = t2.id and t2.del_flag = '0'
+        left join t_tray t3 on t1.tray_id = t3.id
+        <where>
+            t1.del_flag = '0'
+            <if test="id != null"> and t1.id = #{id}</if>
+            <if test="taskId != null ">and t1.task_id = #{taskId}</if>
+            <if test="materialId != null ">and t1.material_id = #{materialId}</if>
+            <if test="status != null  and status != ''">and t1.status = #{status}</if>
+            <if test="taskType != null  and taskType != ''">and t2.task_type = #{taskType}</if>
+            <if test="statusStrs != null  and statusStrs != ''">and t1.status in (${statusStrs})</if>
+            <if test="trayId != null ">and t1.tray_id = #{trayId}</if>
+            <if test="trayCode != null ">and t3.code = #{trayCode}</if>
+            <if test="locationId != null ">and t1.location_id = #{locationId}</if>
+            <if test="dutyPersonnel != null  and dutyPersonnel != ''">and t1.duty_personnel = #{dutyPersonnel}</if>
+            <if test="priority != null ">and priority = #{priority}</if>
+            <if test="batchNumber != null  and batchNumber != ''">and t1.batch_number = #{batchNumber}</if>
+            <if test="deptId != null ">and t1.dept_id = #{deptId}</if>
+            <if test="taskIds != null"> and t2.id in
+                <foreach item="taskId" collection="taskIds" open="(" separator="," close=")">
+                    #{taskId}
+                </foreach>
+            </if>
+            <if test="materialIds != null and materialIds.size() > 0"> and t1.material_id in
+                <foreach item="materialId" collection="materialIds" open="(" separator="," close=")">
+                    #{materialId}
+                </foreach>
+            </if>
+            <if test="taskStatus != null and taskStatus != ''">and t2.task_status = #{taskStatus}</if>
+            <if test="statusPda != null and statusPda != ''">and t2.status = #{statusPda}</if>
+            <if test="position != null and position != ''">and t1.position = #{position}</if>
+            <if test="locationList != null and locationList.size() > 0"> and t1.location_id in
+                <foreach item="item" collection="locationList" open="(" separator="," close=")">
+                    #{item}
+                </foreach>
+            </if>
+            <if test="checkDeliveryStatus != null and checkDeliveryStatus != ''">
+                and t1.status in (${checkDeliveryStatus})
+            </if>
+        </where>
+        order by t1.create_time desc
+    </select>
+
+    <select id="selectTaskDetailListCheck" parameterType="com.xsrw.wms.check.domain.dto.TaskDetailDTO" resultType="com.xsrw.wms.check.domain.vo.TaskDetailVO">
+        select
+        t1.task_id, t1.id, ifnull(t1.material_id,t4.material_id) as material_id,
+        t1.status, t1.tray_id, t1.location_id, t1.org_location_id, t1.duty_personnel,
+        ifnull(t1.batch_number,t4.batch_number) as batch_number, t1.dept_id, t1.dept_name, t1.stock_id, t1.check_count, t1.create_time,
+        t1.wcs_id,
+        t2.code as taskCode,t2.task_type,t2.task_status as taskStatus,
+        t3.code as trayCode,t2.check_type,
+        ifnull(t1.actual_count,t4.actual_count) as actual_count,ifnull(t1.predict_count,t4.predict_count) as predict_count,
+        t4.rfid_head,
+        t4.rfid_head_count
+        from t_task_detail t1
+        left join t_task t2 on t1.task_id = t2.id and t2.del_flag = '0'
+        left join t_tray t3 on t1.tray_id = t3.id
+        left join t_check_history t4 on t1.id = t4.task_detail_id and t4.del_flag = '0'
+        <where>
+            t1.del_flag = '0'
+            <if test="id != null"> and t1.id = #{id}</if>
+            <if test="taskId != null ">and t1.task_id = #{taskId}</if>
+            <if test="materialId != null ">and t1.material_id = #{materialId}</if>
+            <if test="status != null  and status != ''">and t1.status = #{status}</if>
+            <if test="taskType != null  and taskType != ''">and t2.task_type = #{taskType}</if>
+            <if test="statusStrs != null  and statusStrs != ''">and t1.status in (${statusStrs})</if>
+            <if test="trayId != null ">and t1.tray_id = #{trayId}</if>
+            <if test="trayCode != null ">and t3.code = #{trayCode}</if>
+            <if test="locationId != null ">and t1.location_id = #{locationId}</if>
+            <if test="dutyPersonnel != null  and dutyPersonnel != ''">and t1.duty_personnel = #{dutyPersonnel}</if>
+            <if test="priority != null ">and priority = #{priority}</if>
+            <if test="batchNumber != null  and batchNumber != ''">and t1.batch_number = #{batchNumber}</if>
+            <if test="deptId != null ">and t1.dept_id = #{deptId}</if>
+            <if test="taskIds != null"> and t2.id in
+                <foreach item="taskId" collection="taskIds" open="(" separator="," close=")">
+                    #{taskId}
+                </foreach>
+            </if>
+            <if test="materialIds != null and materialIds.size() > 0"> and t1.material_id in
+                <foreach item="materialId" collection="materialIds" open="(" separator="," close=")">
+                    #{materialId}
+                </foreach>
+            </if>
+            <if test="taskStatus != null and taskStatus != ''">and t2.task_status = #{taskStatus}</if>
+            <if test="statusPda != null and statusPda != ''">and t2.status = #{statusPda}</if>
+            <if test="position != null and position != ''">and t1.position = #{position}</if>
+            <if test="locationList != null and locationList.size() > 0"> and t1.location_id in
+                <foreach item="item" collection="locationList" open="(" separator="," close=")">
+                    #{item}
+                </foreach>
+            </if>
+            <if test="checkDeliveryStatus != null and checkDeliveryStatus != ''">
+                and t1.status in (${checkDeliveryStatus})
+            </if>
+        </where>
+        order by t1.create_time desc,t4.tray_id
+    </select>
+
+    <delete id="deleteTTaskDetailById" parameterType="Long">
+         update t_task_detail set del_flag = '1' where id = #{id}
+    </delete>
+
+    <delete id="deleteTTaskDetailByIds" parameterType="String">
+        update t_task_detail set del_flag = '1' where id in
+        <foreach item="id" collection="array" open="(" separator="," close=")">
+            #{id}
+        </foreach>
+    </delete>
+
+    <update id="deleteDetailByTaskIds" parameterType="String">
+        update t_task_detail set del_flag = '1' where task_id in
+        <foreach item="taskId" collection="array" open="(" separator="," close=")">
+            #{taskId}
+        </foreach>
+    </update>
+    <update id="updateStatusByTaskIds">
+        update t_task_detail set status = #{status} where task_id in
+        <foreach item="taskId" collection="taskIds" open="(" separator="," close=")">
+            #{taskId}
+        </foreach>
+        <if test="delStatus != null and delStatus != ''">
+            and status not in (${delStatus})
+        </if>
+    </update>
+
+    <update id="updateStatusByIds">
+        update t_task_detail set
+        <if test="checkCount != null">check_count = check_count + 1,</if>
+        status = #{status} where id in
+        <foreach item="id" collection="ids" open="(" separator="," close=")">
+            #{id}
+        </foreach>
+    </update>
+
+    <select id="selectUnFinishedCount" resultType="java.lang.Integer">
+        select (count(1) - count(if(status = #{status}, true, null)))
+        from t_task_detail ttd
+        where del_flag = 0 and task_id = #{taskId}
+        <if test="delStatus != null and delStatus != ''">
+            and status not in (${delStatus})
+        </if>
+    </select>
+</mapper>

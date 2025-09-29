@@ -1,0 +1,50 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper
+PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+"http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.xsrw.wms.base.mapper.TWarehouseMapper">
+
+    <sql id="selectTWarehouseVo">
+        select twarehouse.id, twarehouse.name, twarehouse.status, twarehouse.phone, twarehouse.contact_person, twarehouse.remark, twarehouse.role_id, twarehouse.create_by, twarehouse.create_time, twarehouse.update_by, twarehouse.update_time, twarehouse.dept_id, twarehouse.dept_name, twarehouse.del_flag
+        from t_warehouse twarehouse
+    </sql>
+
+    <select id="selectTWarehouseList" parameterType="com.xsrw.wms.base.domain.TWarehouse" resultType="com.xsrw.wms.base.domain.TWarehouse">
+        <include refid="selectTWarehouseVo"/>
+        <if test="params.dataScope != null  and params.dataScope != ''">
+            inner join sys_user u on u.user_name = twarehouse.create_by and u.status = '0'
+            inner join sys_dept d on u.dept_id = d.dept_id and d.status = '0'
+        </if>
+        <where>
+            twarehouse.del_flag = '0'
+            <if test="name != null  and name != ''"> and twarehouse.name like concat('%', #{name}, '%')</if>
+            <if test="status != null  and status != ''"> and twarehouse.status = #{status}</if>
+            <if test="phone != null  and phone != ''"> and twarehouse.phone  like concat('%', #{phone}, '%')</if>
+            <if test="contactPerson != null  and contactPerson != ''"> and twarehouse.contact_person   like concat('%', #{contactPerson}, '%')</if>
+            <if test="roleId != null "> and twarehouse.role_id = #{roleId}</if>
+        </where>
+        <!-- 数据范围过滤 -->
+        ${params.dataScope}
+        order by twarehouse.id desc
+    </select>
+
+    <delete id="deleteTWarehouseById" parameterType="Long">
+         update t_warehouse set del_flag = '1' where id = #{id}
+    </delete>
+
+    <delete id="deleteTWarehouseByIds" parameterType="String">
+        update t_warehouse set del_flag = '1' where id in
+        <foreach item="id" collection="array" open="(" separator="," close=")">
+            #{id}
+        </foreach>
+    </delete>
+
+    <select id="selectTWarehouse" resultType="com.xsrw.wms.base.domain.TWarehouse">
+        select twarehouse.id, twarehouse.name, twarehouse.status, twarehouse.phone, twarehouse.contact_person, twarehouse.remark,
+               twarehouse.role_id, twarehouse.create_by, twarehouse.create_time, twarehouse.update_by, twarehouse.update_time,
+               twarehouse.dept_id, twarehouse.dept_name, twarehouse.del_flag,r.menu_check_strictly menuCheckStrictly,r.role_key roleKey,r.data_scope dataScope,r.dept_check_strictly deptCheckStrictly
+        from t_warehouse twarehouse
+        left join sys_role r on r.role_id=twarehouse.role_id
+        where twarehouse.id=#{id}
+    </select>
+</mapper>

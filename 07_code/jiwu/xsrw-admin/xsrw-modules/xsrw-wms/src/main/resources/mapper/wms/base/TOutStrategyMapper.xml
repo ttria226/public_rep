@@ -1,0 +1,41 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper
+PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+"http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.xsrw.wms.base.mapper.TOutStrategyMapper">
+
+    <sql id="selectTOutStrategyVo">
+        select toutstrategy.id, toutstrategy.code, toutstrategy.flag, toutstrategy.name, toutstrategy.strategy_type, toutstrategy.priority, toutstrategy.remark, toutstrategy.create_by, toutstrategy.create_time, toutstrategy.update_by, toutstrategy.update_time, toutstrategy.dept_id, toutstrategy.dept_name, toutstrategy.del_flag
+        from t_out_strategy toutstrategy
+    </sql>
+
+    <select id="selectTOutStrategyList" parameterType="com.xsrw.wms.base.domain.TOutStrategy" resultType="com.xsrw.wms.base.domain.TOutStrategy">
+        <include refid="selectTOutStrategyVo"/>
+        <if test="params.dataScope != null  and params.dataScope != ''">
+            inner join sys_user u on u.user_name = toutstrategy.create_by and u.status = '0'
+            inner join sys_dept d on u.dept_id = d.dept_id and d.status = '0'
+        </if>
+        <where>
+            toutstrategy.del_flag = '0'
+            <if test="code != null  and code != ''"> and toutstrategy.code like concat('%', #{code}, '%')</if>
+            <if test="flag != null  and flag != ''"> and toutstrategy.flag = #{flag}</if>
+            <if test="name != null  and name != ''"> and toutstrategy.name like concat('%', #{name}, '%')</if>
+            <if test="strategyType != null  and strategyType != ''"> and toutstrategy.strategy_type = #{strategyType}</if>
+            <if test="priority != null "> and toutstrategy.priority = #{priority}</if>
+        </where>
+        <!-- 数据范围过滤 -->
+        ${params.dataScope}
+    </select>
+
+    <delete id="deleteTOutStrategyById" parameterType="Long">
+         update t_out_strategy set del_flag = '1' where id = #{id}
+    </delete>
+
+    <delete id="deleteTOutStrategyByIds" parameterType="String">
+        update t_out_strategy set del_flag = '1' where id in
+        <foreach item="id" collection="array" open="(" separator="," close=")">
+            #{id}
+        </foreach>
+    </delete>
+
+</mapper>

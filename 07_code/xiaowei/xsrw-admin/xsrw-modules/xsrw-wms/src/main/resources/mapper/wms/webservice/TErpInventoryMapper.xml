@@ -1,0 +1,92 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper
+PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+"http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.xsrw.wms.webservice.mapper.TErpInventoryMapper">
+    
+    <resultMap type="TErpInventory" id="TErpInventoryResult">
+        <result property="id"    column="id"    />
+        <result property="ivnum"    column="ivnum"    />
+        <result property="pdatu"    column="pdatu"    />
+        <result property="uname"    column="uname"    />
+        <result property="lgnum"    column="lgnum"    />
+        <result property="werks"    column="werks"    />
+        <result property="createBy"    column="create_by"    />
+        <result property="createTime"    column="create_time"    />
+        <result property="updateBy"    column="update_by"    />
+        <result property="updateTime"    column="update_time"    />
+    </resultMap>
+
+    <sql id="selectTErpInventoryVo">
+        select id, ivnum, pdatu, uname, lgnum, werks, create_by, create_time, update_by, update_time from t_erp_inventory
+    </sql>
+
+    <select id="selectTErpInventoryList" parameterType="TErpInventory" resultMap="TErpInventoryResult">
+        <include refid="selectTErpInventoryVo"/>
+        <where>  
+            <if test="ivnum != null  and ivnum != ''"> and ivnum = #{ivnum}</if>
+            <if test="pdatu != null  and pdatu != ''"> and pdatu = #{pdatu}</if>
+            <if test="uname != null  and uname != ''"> and uname like concat('%', #{uname}, '%')</if>
+            <if test="lgnum != null  and lgnum != ''"> and lgnum = #{lgnum}</if>
+            <if test="werks != null  and werks != ''"> and werks = #{werks}</if>
+        </where>
+    </select>
+    
+    <select id="selectTErpInventoryById" parameterType="Long" resultMap="TErpInventoryResult">
+        <include refid="selectTErpInventoryVo"/>
+        where id = #{id}
+    </select>
+        
+    <insert id="insertTErpInventory" parameterType="TErpInventory" useGeneratedKeys="true" keyProperty="id">
+        insert into t_erp_inventory
+        <trim prefix="(" suffix=")" suffixOverrides=",">
+            <if test="ivnum != null">ivnum,</if>
+            <if test="pdatu != null">pdatu,</if>
+            <if test="uname != null">uname,</if>
+            <if test="lgnum != null">lgnum,</if>
+            <if test="werks != null">werks,</if>
+            <if test="createBy != null">create_by,</if>
+            <if test="createTime != null">create_time,</if>
+            <if test="updateBy != null">update_by,</if>
+            <if test="updateTime != null">update_time,</if>
+         </trim>
+        <trim prefix="values (" suffix=")" suffixOverrides=",">
+            <if test="ivnum != null">#{ivnum},</if>
+            <if test="pdatu != null">#{pdatu},</if>
+            <if test="uname != null">#{uname},</if>
+            <if test="lgnum != null">#{lgnum},</if>
+            <if test="werks != null">#{werks},</if>
+            <if test="createBy != null">#{createBy},</if>
+            <if test="createTime != null">#{createTime},</if>
+            <if test="updateBy != null">#{updateBy},</if>
+            <if test="updateTime != null">#{updateTime},</if>
+         </trim>
+    </insert>
+
+    <update id="updateTErpInventory" parameterType="TErpInventory">
+        update t_erp_inventory
+        <trim prefix="SET" suffixOverrides=",">
+            <if test="ivnum != null">ivnum = #{ivnum},</if>
+            <if test="pdatu != null">pdatu = #{pdatu},</if>
+            <if test="uname != null">uname = #{uname},</if>
+            <if test="lgnum != null">lgnum = #{lgnum},</if>
+            <if test="werks != null">werks = #{werks},</if>
+            <if test="createBy != null">create_by = #{createBy},</if>
+            <if test="createTime != null">create_time = #{createTime},</if>
+            <if test="updateBy != null">update_by = #{updateBy},</if>
+            <if test="updateTime != null">update_time = #{updateTime},</if>
+        </trim>
+        where id = #{id}
+    </update>
+
+    <delete id="deleteTErpInventoryById" parameterType="Long">
+        delete from t_erp_inventory where id = #{id}
+    </delete>
+
+    <delete id="deleteTErpInventoryByIds" parameterType="String">
+        delete from t_erp_inventory where id in 
+        <foreach item="id" collection="array" open="(" separator="," close=")">
+            #{id}
+        </foreach>
+    </delete>
+</mapper>

@@ -1,0 +1,107 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper
+        PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.xsrw.wms.inout.mapper.TTaskWcsRecordMapper">
+
+    <sql id="selectTTaskWcsRecordVo">
+        select a.id, a.task_wcs_id, a.start_position, a.purpose_position, a.send_data, a.accept_data, a.order_id, a.status, a.remark, a.create_by, a.create_time, a.update_by, a.update_time, a.dept_id, a.dept_name, a.del_flag
+        from t_task_wcs_record a
+    </sql>
+
+    <select id="selectTTaskWcsRecordList" parameterType="com.xsrw.wms.inout.domain.TTaskWcsRecord"
+            resultType="com.xsrw.wms.inout.domain.vo.TTaskWcsRecordVO">
+        select
+        a.id, a.task_wcs_id, a.start_position, a.purpose_position, a.send_data, a.accept_data,
+        a.interface_type,a.main_task_no ,a.wcs_type , a.order_id, a.status, a.remark, a.create_time,
+        b.task_type ,b.task_no , b.task_status , b.tray_code
+        from t_task_wcs_record a
+        left join t_task_wcs b on a.task_wcs_id = b.id
+        <if test="params.dataScope != null  and params.dataScope != ''">
+            inner join sys_user u on u.user_name = a.create_by and u.status = '0'
+            inner join sys_dept d on u.dept_id = d.dept_id and d.status = '0'
+        </if>
+        <where>
+            a.del_flag = '0'
+            <if test="taskWcsId != null ">and a.task_wcs_id = #{taskWcsId}</if>
+            <if test="startPosition != null  and startPosition != ''">and a.start_position =
+                #{startPosition}
+            </if>
+            <if test="purposePosition != null  and purposePosition != ''">and a.purpose_position =
+                #{purposePosition}
+            </if>
+            <if test="sendData != null  and sendData != ''">and a.send_data = #{sendData}</if>
+            <if test="acceptData != null  and acceptData != ''">and a.accept_data = #{acceptData}</if>
+            <if test="orderId != null ">and a.order_id = #{orderId}</if>
+            <if test="status != null  and status != ''">and a.status = #{status}</if>
+            <if test="mainTaskNo != null  and mainTaskNo != ''">and a.main_task_no = #{mainTaskNo}</if>
+        </where>
+        <!-- 数据范围过滤 -->
+        ${params.dataScope}
+    </select>
+
+    <select id="getListByTray" parameterType="com.xsrw.wms.inout.domain.dto.TTaskWcsRecordDTO"
+            resultType="com.xsrw.wms.inout.domain.vo.TTaskWcsRecordVO">
+        select
+        a.id, a.task_wcs_id, a.send_data, a.accept_data,
+        a.interface_type,a.main_task_no ,a.wcs_type , a.order_id, a.status, a.create_time,
+        b.task_type ,b.task_no , b.task_status , b.tray_code,
+        if(b.task_type= '5',tl.name,tl3.name)as startPosition,
+        if(b.task_type= '5',tl2.name,tl3.name)as purposePosition
+        from t_task_wcs_record a
+        left join t_task_wcs b on a.task_wcs_id = b.id
+        left join t_location tl on b.start_position = tl.code
+        left join t_location tl2 on b.purpose_position = tl2.code
+        left join t_location tl3 on b.location_id = tl3.id
+        <where>
+            a.del_flag = '0' and b.tray_id = #{trayId}
+            <if test="taskWcsId != null ">and a.task_wcs_id = #{taskWcsId}</if>
+            <if test="startPosition != null  and startPosition != ''">and a.start_position =
+                #{startPosition}
+            </if>
+            <if test="purposePosition != null  and purposePosition != ''">and a.purpose_position =
+                #{purposePosition}
+            </if>
+            <if test="sendData != null  and sendData != ''">and a.send_data = #{sendData}</if>
+            <if test="acceptData != null  and acceptData != ''">and a.accept_data = #{acceptData}</if>
+            <if test="orderId != null ">and a.order_id = #{orderId}</if>
+            <if test="status != null  and status != ''">and a.status = #{status}</if>
+            <if test="mainTaskNo != null  and mainTaskNo != ''">and a.main_task_no = #{mainTaskNo}</if>
+        </where>
+        order by a.create_time desc
+    </select>
+
+    <select id="getTaskNoList" parameterType="com.xsrw.wms.inout.domain.TTaskWcsRecord"
+            resultType="com.xsrw.wms.inout.domain.vo.TTaskWcsRecordVO">
+        select
+            b.id as task_wcs_id,
+            b.task_type ,
+            b.task_no ,
+            b.task_status ,
+            b.tray_code ,
+            b.create_time ,
+            if(b.task_type= '5',tl.name,tl3.name)as startPosition,
+            if(b.task_type= '5',tl2.name,tl3.name)as purposePosition
+        from t_task_wcs b
+        left join t_location tl on b.start_position = tl.code
+        left join t_location tl2 on b.purpose_position = tl2.code
+        left join t_location tl3 on b.location_id = tl3.id
+        <where>
+            b.del_flag = '0'
+            <if test="taskWcsId != null ">and b.id = #{taskWcsId}</if>
+            <if test="mainTaskNo != null  and mainTaskNo != ''">and b.main_task_no = #{mainTaskNo}</if>
+        </where>
+    </select>
+
+    <delete id="deleteTTaskWcsRecordById" parameterType="Long">
+         update t_task_wcs_record set del_flag = '1' where id = #{id}
+    </delete>
+
+    <delete id="deleteTTaskWcsRecordByIds" parameterType="String">
+        update t_task_wcs_record set del_flag = '1' where id in
+        <foreach item="id" collection="array" open="(" separator="," close=")">
+            #{id}
+        </foreach>
+    </delete>
+
+</mapper>

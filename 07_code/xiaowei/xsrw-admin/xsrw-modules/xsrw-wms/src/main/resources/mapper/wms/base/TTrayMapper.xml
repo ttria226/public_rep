@@ -1,0 +1,174 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper
+        PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.xsrw.wms.base.mapper.TTrayMapper">
+
+    <sql id="selectTTrayVo">
+        select ttray.id, ttray.code, ttray.area_id, ttray.location_id, ttray.reservoir_id, ttray.type, ttray.status, ttray.tray_category, ttray.label_template_type, ttray.label_template_id, ttray.remark, ttray.create_by, ttray.create_time, ttray.update_by, ttray.update_time, ttray.dept_id, ttray.dept_name, ttray.del_flag, ttray.weight, ttray.max_weight
+       ,ta.`name` as areaName,tl.name as locationName,tr.name as reservoirName
+        from t_tray ttray
+    </sql>
+
+    <select id="selectTTrayList" parameterType="com.xsrw.wms.base.domain.dto.TTrayDTO"
+            resultType="com.xsrw.wms.base.domain.TTray">
+        <include refid="selectTTrayVo"/>
+        <if test="params.dataScope != null  and params.dataScope != ''">
+            inner join sys_user u on u.user_name = ttray.create_by and u.status = '0'
+            inner join sys_dept d on u.dept_id = d.dept_id and d.status = '0'
+        </if>
+        left join t_area ta on ta.id=ttray.area_id
+        left join t_location tl on tl.id=ttray.location_id
+        left join t_reservoir tr on tr.id=ttray.reservoir_id
+        <where>
+            ttray.del_flag = '0'
+            <if test="code != null  and code != ''">and ttray.code like concat('%', #{code}, '%')</if>
+            <if test="areaId != null ">and ttray.area_id = #{areaId}</if>
+            <if test="locationId != null ">and ttray.location_id = #{locationId}</if>
+            <if test="reservoirId != null ">and ttray.reservoir_id = #{reservoirId}</if>
+            <if test="type != null  and type != ''">and ttray.type = #{type}</if>
+            <if test="status != null  and status != ''">and ttray.status = #{status}</if>
+            <if test="trayCategory != null  and trayCategory != ''">and ttray.tray_category = #{trayCategory}</if>
+            <if test="labelTemplateType != null  and labelTemplateType != ''">and ttray.label_template_type =
+                #{labelTemplateType}
+            </if>
+            <if test="labelTemplateId != null ">and ttray.label_template_id = #{labelTemplateId}</if>
+            <if test="notStatus != null and notStatus != '' ">and ttray.status &lt;&gt; #{notStatus}</if>
+        </where>
+        <!-- 数据范围过滤 -->
+        ${params.dataScope}
+    </select>
+
+    <select id="selectTTrayInfoList" parameterType="com.xsrw.wms.base.domain.dto.TTrayDTO"
+            resultType="com.xsrw.wms.api.domain.vo.TTrayApiVO">
+        select ttray.id, ttray.code, ttray.area_id, ttray.location_id, ttray.reservoir_id, ttray.type, ttray.status,
+        ttray.tray_category, ttray.label_template_type, ttray.label_template_id, ttray.remark, ttray.create_by,
+        ttray.create_time, ttray.update_by, ttray.update_time, ttray.dept_id, ttray.dept_name, ttray.del_flag,
+        ttray.weight, ttray.max_weight,
+        tl.name as locationName,tl.goods_allocation_status,tl.pallet_num
+        from t_tray ttray
+        left join t_location tl on ttray .location_id = tl.id
+        <if test="params.dataScope != null  and params.dataScope != ''">
+            inner join sys_user u on u.user_name = ttray.create_by and u.status = '0'
+            inner join sys_dept d on u.dept_id = d.dept_id and d.status = '0'
+        </if>
+        <where>
+            ttray.del_flag = '0'
+            <if test="code != null  and code != ''">and ttray.code like concat('%', #{code}, '%')</if>
+            <if test="areaId != null ">and ttray.area_id = #{areaId}</if>
+            <if test="locationId != null ">and ttray.location_id = #{locationId}</if>
+            <if test="reservoirId != null ">and ttray.reservoir_id = #{reservoirId}</if>
+            <if test="type != null  and type != ''">and ttray.type = #{type}</if>
+            <if test="status != null  and status != ''">and ttray.status = #{status}</if>
+            <if test="trayCategory != null  and trayCategory != ''">and ttray.tray_category = #{trayCategory}</if>
+            <if test="labelTemplateType != null  and labelTemplateType != ''">and ttray.label_template_type =
+                #{labelTemplateType}
+            </if>
+            <if test="labelTemplateId != null ">and ttray.label_template_id = #{labelTemplateId}</if>
+            <if test="notStatus != null and notStatus != '' ">and ttray.status &lt;&gt; #{notStatus}</if>
+            <if test="notStatus != null and notStatus != '' ">and (ttray .location_id is null or (ttray .location_id is
+                not null and tl.location_type= '0'))
+            </if>
+            <if test="goodsAllocationStatus != null and goodsAllocationStatus != '' ">and tl.goods_allocation_status =
+                #{goodsAllocationStatus}
+            </if>
+            <if test="locationName != null  and locationName != ''">and tl.name like concat('%', #{locationName}, '%')</if>
+        </where>
+        <!-- 数据范围过滤 -->
+        ${params.dataScope}
+        order by ttray.create_time desc
+    </select>
+
+    <delete id="deleteTTrayById" parameterType="Long">
+         update t_tray set del_flag = '1' where id = #{id}
+    </delete>
+
+    <delete id="deleteTTrayByIds" parameterType="String">
+        update t_tray set del_flag = '1' where id in
+        <foreach item="id" collection="array" open="(" separator="," close=")">
+            #{id}
+        </foreach>
+    </delete>
+    <select id="getTrayListByTaskId" resultType="java.util.Map">
+        SELECT tt.id,tt.`code` FROM t_task_detail ttd
+        INNER JOIN t_tray tt on tt.id=ttd.tray_id
+        WHERE ttd.task_id=#{taskId} AND ttd.del_flag='0' AND tt.del_flag='0'
+    </select>
+
+    <select id="getLocationInfoById" resultType="long">
+        select ifnull( tl.id , tt.location_id ) as locationId
+        from t_tray tt
+        left join t_location tl on tt.code = tl.pallet_num
+        where tt.del_flag = '0' and tt.id = #{trayId}
+        order by tt.create_time desc
+        limit 1
+    </select>
+
+    <select id="getLocationById" resultType="com.xsrw.wms.base.domain.TLocation">
+        select ifnull( tl.id , tt.location_id ) as id,tl.location_type
+        from t_tray tt
+        left join t_location tl on tt.code = tl.pallet_num
+        where tt.del_flag = '0' and tt.id = #{trayId}
+        order by tt.create_time desc
+        limit 1
+    </select>
+
+    <select id="getLocationDetailById" resultType="com.xsrw.wms.base.domain.TTray">
+        select
+        tt.id, tt.code, tt.area_id, tt.reservoir_id,tt.type, tt.tray_category,
+        ifnull( tl.id , tt.location_id ) as locationId
+        from t_tray tt
+        left join t_location tl on tt.code = tl.pallet_num
+        where tt.del_flag = '0' and tt.id = #{trayId}
+        order by tt.create_time desc
+        limit 1
+    </select>
+
+    <select id="getTrayInfo" resultType="com.xsrw.wms.api.domain.vo.TTrayApiVO">
+        select ttray.id, ttray.code, ttray.area_id, ttray.location_id, ttray.reservoir_id, ttray.type, ttray.status,
+        ttray.tray_category, ttray.label_template_type, ttray.label_template_id, ttray.remark, ttray.create_by,
+        ttray.create_time, ttray.update_by, ttray.update_time, ttray.dept_id, ttray.dept_name, ttray.del_flag,
+        ttray.weight, ttray.max_weight,
+        tl.name as locationName,tl.goods_allocation_status,tl.pallet_num,tl.location_type
+        from t_tray ttray
+        left join t_location tl on ttray.location_id = tl.id
+        where ttray.del_flag = '0'
+        <choose>
+            <when test="trayId != null">and ttray.id = #{trayId}</when>
+            <otherwise>and ttray.code = trim(#{trayCode})</otherwise>
+        </choose>
+        limit 1
+    </select>
+
+    <select id="getBatchCodeList" resultType="string">
+        select ttray.code from t_tray ttray where ttray.del_flag = '0'
+        <if test="trayCategory != null  and trayCategory != ''">and ttray.tray_category = #{trayCategory}</if>
+        <if test="startNo != null and startNo != ''">and SUBSTR(code,2,LENGTH(`code`)-1)+0 &gt;= #{startNo}+0</if>
+        <if test="endNo != null and endNo != ''">and SUBSTR(code,2,LENGTH(`code`)-1)+0 &lt;= #{endNo}+0</if>
+    </select>
+
+    <select id="selectPutWayList" parameterType="com.xsrw.wms.base.domain.dto.TTrayDTO"
+            resultType="com.xsrw.wms.api.domain.vo.TTrayApiVO">
+        select ttray.id, ttray.code, ttray.area_id, ttray.location_id, ttray.reservoir_id, ttray.type, ttray.status,
+        ttray.tray_category, ttray.label_template_type, ttray.label_template_id, ttray.remark, ttray.create_by,
+        ttray.create_time, ttray.update_by, ttray.update_time, ttray.dept_id, ttray.dept_name, ttray.del_flag,
+        ttray.weight, ttray.max_weight,
+        tl.name as locationName,tl.goods_allocation_status,tl.pallet_num
+        from t_tray ttray
+        left join t_location tl on ttray .location_id = tl.id
+        left join t_task_wcs ttw on ttw.tray_id = ttray .id and ttw.del_flag = '0' and ttw.task_status not in ('3', '5')
+        <where>
+            ttray.del_flag = '0' and ((ttray.status &lt;&gt; '2' and ttw.id is null
+            <if test="code != null  and code != ''">and ttray.code like concat('%', #{code}, '%')</if>
+            <if test="codes != null  and codes.size() > 0">
+                <foreach collection="codes" separator="," item="code" close=")" open=" and ttray.code in (">
+                    #{code}
+                </foreach>
+            </if>
+            <if test="trayCategory != null  and trayCategory != ''">and ttray.tray_category = #{trayCategory}</if>
+            )
+            <if test="id != null">or ttray.id = #{id}</if>)
+        </where>
+    </select>
+
+</mapper>

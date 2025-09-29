@@ -1,0 +1,563 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper
+PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+"http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.xsrw.wms.stock.mapper.TStockMapper">
+
+    <sql id="selectTStockVo">
+        select tstock.id, tstock.area_id, tstock.location_id, tstock.material_id, tstock.batch_code, tstock.unit_id, tstock.count, tstock.available_count, tstock.status, tstock.is_freeze, tstock.origin_type, tstock.tray_id, tstock.begin_date, tstock.end_date, tstock.produced_date, tstock.position, tstock.remark, tstock.create_by, tstock.create_time, tstock.update_by, tstock.update_time, tstock.dept_id, tstock.dept_name, tstock.del_flag
+        from t_stock tstock
+    </sql>
+
+    <update id="updateFreezeByIds">
+        update t_stock set
+        is_freeze = #{isFreeze}
+        ,origin_type = #{originType}
+        where del_flag = '0' and id in
+        <foreach item="id" collection="ids" open="(" separator="," close=")">
+            #{id}
+        </foreach>
+    </update>
+
+    <select id="selectTStockList" parameterType="com.xsrw.wms.stock.domain.TStock" resultType="com.xsrw.wms.stock.domain.TStock">
+        <include refid="selectTStockVo"/>
+        <if test="params.dataScope != null  and params.dataScope != ''">
+            inner join sys_user u on u.user_name = tstock.create_by and u.status = '0'
+            inner join sys_dept d on u.dept_id = d.dept_id and d.status = '0'
+        </if>
+        <where>
+            tstock.del_flag = '0'
+            <if test="areaId != null "> and tstock.area_id = #{areaId}</if>
+            <if test="locationId != null "> and tstock.location_id = #{locationId}</if>
+            <if test="materialId != null "> and tstock.material_id = #{materialId}</if>
+            <if test="batchCode != null  and batchCode != ''"> and tstock.batch_code like concat('%', #{batchCode}, '%')</if>
+            <if test="unitId != null "> and tstock.unit_id = #{unitId}</if>
+            <if test="count != null "> and tstock.count = #{count}</if>
+            <if test="availableCount != null "> and tstock.available_count = #{availableCount}</if>
+            <if test="status != null  and status != ''"> and tstock.status = #{status}</if>
+            <if test="isFreeze != null  and isFreeze != ''"> and tstock.is_freeze = #{isFreeze}</if>
+            <if test="originType != null  and originType != ''"> and tstock.origin_type = #{originType}</if>
+            <if test="trayId != null "> and tstock.tray_id = #{trayId}</if>
+            <if test="beginDate != null "> and tstock.begin_date = #{beginDate}</if>
+            <if test="endDate != null "> and tstock.end_date = #{endDate}</if>
+            <if test="producedDate != null "> and tstock.produced_date = #{producedDate}</if>
+            <if test="position != null  and position != ''"> and tstock.position = #{position}</if>
+        </where>
+        <!-- 数据范围过滤 -->
+        ${params.dataScope}
+    </select>
+    <select id="selectStockList" resultType="com.xsrw.wms.stock.domain.vo.StockVo">
+        select
+        s.id,
+        s.area_id,
+        s.position,
+        s.location_id,
+        s.material_id,
+        s.batch_code,
+        s.unit_id,
+        s.count,
+        s.available_count,
+        s.status,
+        s.is_freeze,
+        s.origin_type,
+        s.dept_id,
+        s.dept_name,
+        s.tray_id,
+        s.begin_date,
+        s.end_date,
+        s.produced_date,
+        s.remark,
+        s.del_flag,
+        t.code as trayCode,
+        m.code as materialCode, m.name as materialName,m.specifications ,
+        tu.name as unitName,
+        tl.code as locationCode, tl.name as locationName,
+        tl.location_type,
+        tr.name as reservoirName,
+        ta.name as areaName,
+        tuc.max_unit_name
+        from t_stock as s
+        left join t_tray as t on s.tray_id = t.id
+        left join t_material m on s.material_id = m.id
+        left join t_unit tu on m.unit_id = tu.id
+        left join t_location tl on s.location_id = tl.id
+        left join t_reservoir tr on tl.reservoir_id = tr.id
+        left join t_area ta on s.area_id = ta.id
+        left join t_unit_config tuc on s.material_id = tuc.material_id
+        <where>
+            s.del_flag = '0' AND s.count > 0
+            <if test="stock.batchCode != null  and stock.batchCode != ''"> and s.batch_code = #{stock.batchCode}</if>
+            <if test="stock.areaId != null"> and s.area_id = #{stock.areaId}</if>
+            <if test="stock.trayId != null"> and s.tray_id = #{stock.trayId}</if>
+            <if test="stock.trayCode != null"> and t.code like concat('%', #{stock.trayCode}, '%')</if>
+            <if test="stock.unitId != null "> and s.unit_id = #{stock.unitId}</if>
+            <if test="stock.locationId != null"> and s.location_id = #{stock.locationId}</if>
+            <if test="stock.isFreeze != null  and stock.isFreeze != ''"> and s.is_freeze = #{stock.isFreeze}</if>
+            <if test="stock.materialId != null">and s.material_id = #{stock.materialId}</if>
+            <if test="stock.deptId != null "> and s.dept_id = #{stock.deptId}</if>
+            <if test="stock.position != null  and stock.position != ''"> and s.position like concat('%', #{stock.position}, '%')</if>
+            <if test="stock.originType != null  and stock.originType != ''"> and s.origin_type = #{stock.originType}</if>
+            <if test="stock.materialCode != null  and stock.materialCode != ''"> and m.code like concat('%', #{stock.materialCode}, '%')</if>
+            <if test="stock.materialName != null  and stock.materialName != ''"> and m.name like concat('%', #{stock.materialName}, '%')</if>
+            <if test="stock.locationName != null  and stock.locationName != ''"> and tl.name like concat('%', #{stock.locationName}, '%')</if>
+            <if test="stock.locationCode != null  and stock.locationCode != ''"> and tl.code like concat('%', #{stock.locationCode}, '%')</if>
+        </where>
+        order by s.dept_id
+    </select>
+
+    <select id="listBatchSum" resultType="com.xsrw.wms.stock.domain.vo.StockVo">
+        select
+        s.material_id
+        , sum(s.count) AS count
+        , sum(s.available_count) AS available_count
+        from
+        t_stock AS s
+        where s.del_flag = '0'
+        and s.count > 0
+        <if test="stock.batchCode != null  and stock.batchCode != ''"> and s.batch_code = #{stock.batchCode}</if>
+        <if test="stock.trayId != null"> and s.tray_id = #{stock.trayId}</if>
+        <if test="stock.unitId != null "> and s.unit_id = #{stock.unitId}</if>
+        <if test="stock.locationId != null"> and s.location_id = #{stock.locationId}</if>
+        <if test="stock.isFreeze != null  and stock.isFreeze != ''"> and s.isFreeze = #{stock.isFreeze}</if>
+        <if test="stock.materialId != null">and s.material_id = #{stock.materialId}</if>
+        <if test="stock.deptId != null "> and s.dept_id = #{stock.deptId}</if>
+        <if test="materialIds != null and materialIds.size()!=0">
+            and s.material_id in
+            <foreach item="materialId" collection="materialIds" open="(" separator="," close=")">
+                #{materialId}
+            </foreach>
+        </if>
+        group by s.material_id
+    </select>
+
+    <delete id="deleteTStockById" parameterType="Long">
+         update t_stock set del_flag = '1' where id = #{id}
+    </delete>
+
+    <delete id="deleteTStockByIds" parameterType="String">
+        update t_stock set del_flag = '1' where id in
+        <foreach item="id" collection="array" open="(" separator="," close=")">
+            #{id}
+        </foreach>
+    </delete>
+
+    <select id="getStockListByTrayId" resultType="com.xsrw.wms.stock.domain.vo.StockVo">
+        select
+            s.batch_code ,
+            s.material_id ,
+            s.count,
+            m.code as materialCode,
+            m.name as materialName,
+            tu.name as unitName
+        from t_stock s
+        left join t_material m on s.material_id = m.id
+        left join t_unit tu on m.unit_id = tu.id
+        where s.del_flag = '0' and s.tray_id = #{trayId}
+    </select>
+
+    <select id="getStockList" parameterType="com.xsrw.wms.stock.domain.vo.StockVo" resultType="com.xsrw.wms.stock.domain.vo.StockVo">
+        select
+            a.id,
+            a.count,
+            a.batch_code,
+            m.code as materialCode,
+            m.name as materialName,
+            tu.name as unitName,
+            tl.name as locationName,
+            tr.name as reservoirName,
+            ta.name as areaName,
+            tt.code as trayCode
+        from t_stock a
+        left join t_material m on a.material_id = m.id
+        left join t_unit tu on m.unit_id = tu.id
+        left join t_location tl on a.location_id = tl.id
+        left join t_reservoir tr on tl.reservoir_id = tr.id
+        left join t_area ta on a.area_id = ta.id
+        left join t_tray tt on a.tray_id  = tt.id
+        where a.del_flag = '0'
+        <if test="materialCode != null and materialCode != ''"> and m.code like concat('%', #{materialCode}, '%')</if>
+        <if test="materialName != null and materialName != ''"> and m.name like concat('%', #{materialName}, '%')</if>
+        <if test="locationName != null and locationName != ''"> and tl.name like concat('%', #{locationName}, '%')</if>
+        <if test="batchCode != null and batchCode != ''"> and a.batch_code like concat('%', #{batchCode}, '%')</if>
+         order by a.create_time desc
+    </select>
+    <select id="getMaterialBatchByLocationId" resultType="java.util.Map">
+        SELECT tm.id,ts.batch_code as batchNumber FROM t_stock ts
+        INNER JOIN t_material tm on ts.material_id=tm.id
+        WHERE ts.location_id in
+        <foreach item="locationId" collection="locationIds" open="(" separator="," close=")">
+            #{locationId}
+        </foreach>
+    </select>
+    <select id="getStockByMaterialList" resultType="com.xsrw.wms.stock.domain.vo.StockVo">
+        SELECT ts.id,ts.material_id, tr.name as reservoirName ,tl.name as locationName,tt.code,tsm.library_count as `count`,tsm.available_count,tt.tray_category
+        FROM t_stock ts
+        INNER JOIN t_material tm on ts.material_id=tm.id
+        INNER JOIN t_stock_main tsm on tsm.material_id=tm.id
+        INNER JOIN t_location tl on tl.id=ts.location_id AND tl.del_flag='0'
+        INNER JOIN t_reservoir tr on tr.id=tl.reservoir_id AND tr.del_flag='0'
+        INNER JOIN t_tray tt on tt.id=ts.tray_id AND tt.del_flag='0'
+        WHERE ts.material_id=#{materialId} AND ts.del_flag='0' AND tm.del_flag='0'
+    </select>
+
+    <select id="getValidityWarning" resultType="com.xsrw.wms.report.domain.vo.ValidityWarningReportVO">
+        select
+            a.id, a.material_id , a.location_id , a.batch_code , a.produced_date , a.count ,
+            a.available_count , a.is_freeze , a.tray_id ,
+            m.expiration_date ,m.code as materialCode, m.name as materialName, m.specifications , m.description ,
+            date_add(a.produced_date, INTERVAL m.expiration_date DAY) as expiryDate,
+            tu.name as unitName,b.name as categoryName
+        from t_stock a
+        left join t_material m on a.material_id = m.id
+        left join t_unit tu on m.unit_id = tu.id
+        left join t_category b on m.category_id = b.id
+        where a.del_flag = '0' and a.produced_date is not null
+        <if test="materialCode != null  and materialCode != ''">and m.code like concat('%',#{materialCode},'%')</if>
+        <if test="materialName != null  and materialName != ''">and m.name like concat('%',#{materialName},'%')</if>
+    </select>
+
+    <select id="selectDeadStockList" resultType="com.xsrw.wms.report.domain.vo.DeadStockWarningVO">
+        select
+            m.name materialName,
+            m.code materialCode,
+            m.description description,
+            c.name categoryName,
+            s.count count,
+            u.name unitName,
+            s.batch_code batchCode,
+            ifnull(s.update_time,s.create_time)  deadTime,
+            DATEDIFF(now(),ifnull(s.update_time,s.create_time)) deadDayCount
+        from t_stock s
+        left join t_material m on m.id=s.material_id
+        left join t_category c on c.id=m.category_id
+        left join t_unit u on u.id=m.unit_id
+        where s.del_flag = '0'
+        and date_add(now(), INTERVAL -#{dzpDate} DAY)>ifnull(s.update_time,s.create_time)
+        <if test="materialCode != null  and materialCode != ''">and m.code like concat('%',#{materialCode},'%')</if>
+        <if test="materialName != null  and materialName != ''">and m.name like concat('%',#{materialName},'%')</if>
+        order by deadTime desc
+
+    </select>
+
+    <select id="selectAareHouseAgeAnalyse" resultType="com.xsrw.wms.report.domain.vo.WareHouseAgeAnalyseVO">
+        select
+            m.name materialName,
+            m.code materialCode,
+            s.batch_code batchCode,
+            u.name unitName,
+            m.unit_price unitPrice,
+            s.count count,
+            s.count*m.rough_weight weight,
+            s.count*m.unit_price totalPrice,
+            s.create_time createTime,
+            DATEDIFF(now(),s.create_time) stockAge
+        from t_stock s
+        left join t_material m on m.id=s.material_id
+        left join t_unit u on u.id=m.unit_id
+        where s.del_flag = '0'
+        <if test="materialCode != null  and materialCode != ''">and m.code like concat('%',#{materialCode},'%')</if>
+        <if test="materialName != null  and materialName != ''">and m.name like concat('%',#{materialName},'%')</if>
+        <if test="batchCode != null  and batchCode != ''">and s.batch_code like concat('%',#{batchCode},'%')</if>
+        <if test="beginDate != null  and endDate != null">and s.create_time between #{beginDate} and #{endDate}</if>
+        order by s.create_time desc
+    </select>
+
+    <select id="selectStoreStatisticsList" resultType="com.xsrw.wms.report.domain.vo.StoreStatisticsVO">
+        select
+            m.name materialName,
+            m.code materialCode,
+            u.name unitName,
+            c.name categoryName,
+            s.batch_code batchCode,
+            r.name reservoirName,
+            l.name locationName,
+            s.count count
+        from  t_stock s
+        left join t_material m on m.id=s.material_id
+        left join t_unit u on u.id=m.unit_id
+        left join t_category c on c.id=m.category_id
+        left join t_location l on l.id=s.location_id
+        left join t_reservoir r on r.id=l.reservoir_id
+        where s.del_flag = '0'
+        <if test="materialCode != null  and materialCode != ''">and m.code like concat('%',#{materialCode},'%')</if>
+        <if test="materialName != null  and materialName != ''">and m.name like concat('%',#{materialName},'%')</if>
+        <if test="batchCode != null  and batchCode != ''">and s.batch_code like concat('%',#{batchCode},'%')</if>
+        <if test="reservoirId != null">and r.id=#{reservoirId}</if>
+        order by s.id desc
+    </select>
+
+    <select id="selectDeliveryStock" resultType="com.xsrw.wms.stock.domain.TStock">
+        select t1.id,
+               t1.area_id,
+               t1.location_id,
+               t1.material_id,
+               t1.batch_code,
+               t1.unit_id,
+               t1.`count`,
+               t1.available_count,
+               t1.`status`,
+               t1.is_freeze,
+               t1.origin_type,
+               t1.tray_id,
+               t1.begin_date,
+               t1.end_date,
+               t1.produced_date,
+               t1.position,
+               t1.remark,
+               t1.create_by,
+               t1.create_time,
+               t1.update_by,
+               t1.update_time,
+               t1.dept_id,
+               t1.dept_name,
+               t1.del_flag
+        from t_stock t1
+                 left join t_tray t2 on t1.tray_id = t2.id
+        where t1.del_flag = 0
+          and t1.count != 0
+          and t1.is_freeze = 0
+          <if test="trayType != null and trayType != 3">
+              and t2.tray_category = #{trayType}
+          </if>
+          <if test="materialId != null">
+              and t1.material_id = #{materialId}
+          </if>
+          <if test="materialIds != null and materialIds.size > 0">
+              and t1.material_id in
+              <foreach collection="materialIds" open="(" close=")" separator="," item="item">
+                    #{item}
+              </foreach>
+          </if>
+          <if test="locationId != null and locationId.size > 0">
+              and t1.location_id in
+              <foreach collection="locationId" open="(" close=")" separator="," item="item">
+                    #{item}
+              </foreach>
+          </if>
+    </select>
+
+    <select id="getDeliveryDetailByTray" resultType="com.xsrw.wms.stock.domain.vo.StockVo">
+        select
+            a.id,
+            a.batch_code ,
+            a.material_id ,
+            a.count ,
+            a.available_count ,
+            m.name as materialName
+        from t_stock a
+        left join t_material m on a.material_id = m.id
+        where a.del_flag = '0' and a.tray_id = #{trayId}
+    </select>
+
+    <select id="selectStockInfoByIds" resultType="com.xsrw.wms.stock.domain.vo.StockVo">
+        select a.id, a.batch_code,a.location_id, a.material_id , a.count , a.available_count
+        from t_stock a
+        where a.del_flag = '0' and a.id in
+        <foreach item="stockId" collection="stockIds" open="(" separator="," close=")">
+            #{stockId}
+        </foreach>
+    </select>
+
+    <select id="getStockListByMaterial" resultType="com.xsrw.wms.stock.domain.vo.StockVo">
+        select
+            b.id ,
+            b.count ,
+            b.batch_code ,
+            b.is_freeze ,
+            a.material_name ,
+            a.material_code
+        from t_material_detail a
+        left join t_stock b on a.material_id = b.material_id and a.batch_code = b.batch_code
+        where a.del_flag = '0' and b.del_flag = '0' and a.rfid = #{rfid}
+        and (a.location_id is null or a.location_id = b.location_id)
+    </select>
+
+
+    <select id="selectListByParam" resultType="com.xsrw.wms.stock.domain.vo.TStockListVo">
+        select
+            s.batch_code batchCode,
+            s.count,
+            s.create_time createTime,
+            m.code materialCode,
+            m.name materialName,
+            m.id materialId,
+            m.specifications,
+            l.name locationName
+        from t_stock s
+        left join t_material m on m.id=s.material_id
+        left join t_location l on l.id=s.location_id
+        left join t_tray tray on s.tray_id = tray.id
+        where s.del_flag = '0' and m.del_flag = '0'
+          and s.status='0' and s.is_freeze='0' and s.count != 0
+        <if test="materialCode != null  and materialCode != ''">and m.code like concat('%',#{materialCode},'%')</if>
+        <if test="materialName != null  and materialName != ''">and m.name like concat('%',#{materialName},'%')</if>
+        <if test="batchCode != null  and batchCode != ''">and s.batch_code like concat('%',#{batchCode},'%')</if>
+        <if test="locationId != null">and s.location_id=#{locationId}</if>
+        <if test="beginDate!=null">
+            and s.create_time>=#{beginDate}
+        </if>
+        <if test="endDate!=null">
+            and #{endDate}>=s.create_time
+        </if>
+        <if test="trayType != null and trayType != 3">
+            and tray.tray_category = #{trayType} and l.location_type != '1'
+        </if>
+        <if test="trayType == 3">
+            and l.location_type = '1'
+        </if>
+        order by s.id desc
+    </select>
+
+    <select id="getRoundMaterial" resultType="java.lang.Long">
+        select material_id
+        from (
+                 select distinct material_id from t_stock where del_flag = 0 and is_freeze = 0
+             ) t
+        order by RAND()
+        limit #{value}
+    </select>
+    <select id="getMaterialNum" resultType="java.lang.Integer">
+        select ifnull(sum(t1.available_count),0)
+        from t_stock t1
+                 left join t_location t2 on t1.location_id = t2.id
+        where t1.del_flag = 0
+          and t1.is_freeze = 0
+          and t2.del_flag = 0
+          and t2.location_type = #{type}
+          and t1.material_id = #{materialId}
+    </select>
+
+    <select id="stockTotalAamount" resultType="java.math.BigDecimal">
+        select sum(t1.sum * t2.unit_price)
+        from (select material_id,
+                     sum(count) as sum
+              from t_stock
+              where del_flag = '0'
+                and status = '0'
+              group by material_id) t1
+                 left join t_material t2 on t1.material_id = t2.id
+    </select>
+
+    <select id="categoryRatio" resultType="java.util.Map">
+        select t3.name,
+               t1.count as value
+        from (select material_id,
+                     sum(count) as count
+              from t_stock
+              where del_flag = '0'
+                and status = '0'
+              group by material_id) t1
+                 left join t_material t2 on t1.material_id = t2.id
+                 left join t_category t3 on t2.category_id = t3.id
+        <if test="name != null and name != ''">
+            where t3.name like concat('%',#{name},'%')
+        </if>
+    </select>
+
+    <select id="storageAge" resultType="java.lang.Integer">
+        select ifnull(sum(count),0)
+        from t_stock
+        where del_flag = '0'
+        <if test="type == 1">
+            and DATEDIFF(now(),create_time) &lt; 365
+        </if>
+        <if test="type == 2">
+            and 1095 >  DATEDIFF(now(),create_time) >= 365
+        </if>
+        <if test="type == 3">
+            and 1825 >  DATEDIFF(now(),create_time) >= 1095
+        </if>
+        <if test="type == 4">
+            and DATEDIFF(now(),create_time) >= 1825
+        </if>
+    </select>
+
+    <select id="storageAgeInfo" resultType="java.util.Map">
+        select ifnull(sum(t1.count * t2.unit_price),0) as amount,
+            count(1)                      as count
+        from (select material_id,
+            sum(count) as count
+        from t_stock
+            where del_flag = '0'
+            <if test="type == 1">
+                and DATEDIFF(now(),create_time) &lt; 365
+            </if>
+            <if test="type == 2">
+                and 1095 >  DATEDIFF(now(),create_time) >= 365
+            </if>
+            <if test="type == 3">
+                and 1825 >  DATEDIFF(now(),create_time) >= 1095
+            </if>
+            <if test="type == 4">
+                and DATEDIFF(now(),create_time) >= 1825
+            </if>
+            group by material_id) t1
+        left join t_material t2 on t1.material_id = t2.id
+    </select>
+
+    <select id="minimumStock" resultType="java.util.Map">
+        select t.stock_min as stockMin,
+               t.count,
+               t.id        as materialId,
+               t.name      as materialName,
+               t.categoryName
+        from (select t1.id,
+                     t1.name,
+                     t1.stock_min,
+                     ifnull(t2.count, 0) as count,
+                     t3.name             as categoryName
+              from (select id,
+                           stock_min,
+                           name,
+                           category_id
+                    from t_material
+                    where del_flag = '0'
+                      and stock_min is not null) t1
+                       left join
+                   (select sum(count) as count,
+                           material_id
+                    from t_stock
+                    where del_flag = '0'
+                    group by material_id) t2 on t1.id = t2.material_id
+                       left join t_category t3 on t1.category_id = t3.id) t
+        where t.stock_min > t.count
+        order by t.stock_min - t.count desc
+        limit 10
+    </select>
+    <select id="maximumStock" resultType="java.util.Map">
+        select t.stock_max as stockMax,
+               t.count,
+               t.id        as materialId,
+               t.name      as materialName,
+               t.categoryName
+        from (select t1.id,
+                     t1.name,
+                     t1.stock_max,
+                     ifnull(t2.count, 0) as count,
+                     t3.name             as categoryName
+              from (select id,
+                           stock_max,
+                           name,
+                           category_id
+                    from t_material
+                    where del_flag = '0'
+                      and stock_max is not null) t1
+                       left join
+                   (select sum(count) as count,
+                           material_id
+                    from t_stock
+                    where del_flag = '0'
+                    group by material_id) t2 on t1.id = t2.material_id
+                       left join t_category t3 on t1.category_id = t3.id) t
+        where t.count > t.stock_max
+        order by t.count - t.stock_max desc
+        limit 10
+    </select>
+
+    <select id="selectWmsList" resultType="com.xsrw.wms.stock.domain.ErpWmsBatchCode">
+        select * from erp_wms_batch_code where erp_num = wms_num
+        and type = #{type}
+        order by erp_code ,material_code
+    </select>
+
+</mapper>

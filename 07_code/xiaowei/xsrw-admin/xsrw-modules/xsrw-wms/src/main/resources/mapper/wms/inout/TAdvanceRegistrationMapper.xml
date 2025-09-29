@@ -1,0 +1,122 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper
+        PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.xsrw.wms.inout.mapper.TAdvanceRegistrationMapper">
+
+    <sql id="selectTAdvanceRegistrationVo">
+        select a.id, a.advance_delivery_id, a.advance_delivery_detail_id, a.material_id, a.predict_count, a.actual_count, a.status, a.batch_code,a.next_flag, a.remark, a.create_by, a.create_time, a.update_by, a.update_time, a.dept_id, a.dept_name, a.del_flag
+        from t_advance_registration a
+    </sql>
+
+    <select id="selectTAdvanceRegistrationList" parameterType="com.xsrw.wms.inout.domain.dto.TAdvanceRegistrationDTO"
+            resultType="com.xsrw.wms.inout.domain.vo.TAdvanceRegistrationVO">
+        select
+            a.id,
+            a.advance_delivery_id,
+            a.advance_delivery_detail_id,
+            a.material_id,
+            a.predict_count,
+            a.actual_count,
+            a.status,
+            a.batch_code,
+            a.next_flag,
+            a.remark,
+            a.create_by,
+            a.create_time,
+            a.update_by,
+            a.update_time,
+            a.dept_id,
+            a.dept_name,
+            b.code as advanceDeliveryCode,
+            b.`type` as advanceDeliveryType,
+            b.create_by as maker,
+            m.code as materialCode,
+            m.name as materialName,
+            tu.name as unitName
+        from t_advance_registration a
+        left join t_advance_delivery b on a.advance_delivery_id = b.id
+        left join t_advance_delivery_detail c on a.advance_delivery_detail_id = c.id
+        left join t_material m on a.material_id = m.id
+        left join t_unit tu on  m.unit_id = tu.id
+        <if test="params.dataScope != null  and params.dataScope != ''">
+            inner join sys_user u on u.user_name = a.create_by and u.status = '0'
+            inner join sys_dept d on u.dept_id = d.dept_id and d.status = '0'
+        </if>
+        <where>
+            a.del_flag = '0'
+            <if test="advanceDeliveryId != null ">and a.advance_delivery_id = #{advanceDeliveryId}
+            </if>
+            <if test="advanceDeliveryDetailId != null  and advanceDeliveryDetailId != ''">and
+                a.advance_delivery_detail_id = #{advanceDeliveryDetailId}
+            </if>
+            <if test="materialId != null ">and a.material_id = #{materialId}</if>
+            <if test="predictCount != null ">and a.predict_count = #{predictCount}</if>
+            <if test="actualCount != null ">and a.actual_count = #{actualCount}</if>
+            <if test="status != null  and status != ''">and a.status = #{status}</if>
+            <if test="batchCode != null  and batchCode != ''">and a.batch_code like concat('%',
+                #{batchCode}, '%')
+            </if>
+            <if test="advanceDeliveryCode != null  and advanceDeliveryCode != ''">and b.code like concat('%',
+                #{advanceDeliveryCode}, '%')
+            </if>
+            <if test="advanceDeliveryType != null  and advanceDeliveryType != ''">and
+                b.`type` = #{advanceDeliveryType}
+            </if>
+        </where>
+        <!-- 数据范围过滤 -->
+        ${params.dataScope}
+        order by a.create_time desc
+    </select>
+
+    <delete id="deleteTAdvanceRegistrationById" parameterType="Long">
+         update t_advance_registration set del_flag = '1' where id = #{id}
+    </delete>
+
+    <delete id="deleteTAdvanceRegistrationByIds" parameterType="String">
+        update t_advance_registration set del_flag = '1' where id in
+        <foreach item="id" collection="array" open="(" separator="," close=")">
+            #{id}
+        </foreach>
+    </delete>
+
+    <resultMap id="registrationTaskInInfo"
+               type="com.xsrw.wms.inout.domain.vo.TAdvanceRegistrationVO">
+        <result property="id" column="id"/>
+        <result property="status" column="status"/>
+        <collection property="taskInList" notNullColumn="bId" javaType="java.util.List" ofType="com.xsrw.wms.inout.domain.vo.TTaskInVO">
+            <result property="id" column="bId"/>
+            <result property="status" column="taskInStatus"/>
+        </collection>
+    </resultMap>
+
+    <select id="selectRegistrationInfoList" resultMap="registrationTaskInInfo">
+        select
+            a.id ,
+            a.status ,
+            b.id as bId,
+            b.status as taskInStatus
+        from t_advance_registration a
+        left join t_task_in b on a.id = b.advance_registration_id
+        where a.del_flag = '0' and b.del_flag = '0' and a.id in
+        <foreach item="id" collection="ids" open="(" separator="," close=")">
+            #{id}
+        </foreach>
+    </select>
+
+    <select id="selectInfoById" resultType="com.xsrw.wms.inout.domain.vo.TAdvanceRegistrationVO">
+        select a.id, a.advance_delivery_id, a.advance_delivery_detail_id, a.material_id, a.predict_count, a.actual_count, a.status, a.batch_code, a.remark, a.create_by, a.create_time, a.update_by, a.update_time, a.dept_id, a.dept_name, a.del_flag
+        ,tad.code  as advanceDeliveryCode, tad.`type` as advanceDeliveryType,tad.remark as advanceDeliveryRemark,tad.new_local
+        from t_advance_registration a
+        left join t_advance_delivery tad on a.advance_delivery_id  = tad .id
+        where a.id = #{id}
+    </select>
+
+    <update id="updateNextFlagByIds">
+        update t_advance_registration set next_flag = '1' where id in
+        <foreach item="id" collection="ids" open="(" separator="," close=")">
+            #{id}
+        </foreach>
+    </update>
+
+</mapper>

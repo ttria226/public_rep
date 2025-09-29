@@ -1,0 +1,77 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper
+PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+"http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.xsrw.wms.equipment.mapper.DEquipmentMaintenanceDayMapper">
+
+    <sql id="selectDEquipmentMaintenanceDayVo">
+        select dequipmentmaintenanceday.id, dequipmentmaintenanceday.equipment_id, dequipmentmaintenanceday.part_name, dequipmentmaintenanceday.content, dequipmentmaintenanceday.maintenance_type, dequipmentmaintenanceday.is_external, dequipmentmaintenanceday.external_company, dequipmentmaintenanceday.plan_day, dequipmentmaintenanceday.true_day, dequipmentmaintenanceday.executor_id, dequipmentmaintenanceday.executor_name, dequipmentmaintenanceday.status, dequipmentmaintenanceday.remark, dequipmentmaintenanceday.create_by, dequipmentmaintenanceday.create_time, dequipmentmaintenanceday.update_by, dequipmentmaintenanceday.update_time, dequipmentmaintenanceday.dept_id, dequipmentmaintenanceday.dept_name, dequipmentmaintenanceday.del_flag,dequipmentmaintenanceday.equ_fault_lv,dequipmentmaintenanceday.day_no,dequipmentmaintenanceday.source,dequipmentmaintenanceday.price
+        from d_equipment_maintenance_day dequipmentmaintenanceday
+    </sql>
+
+    <select id="selectDEquipmentMaintenanceDayList" parameterType="com.xsrw.wms.equipment.domain.DEquipmentMaintenanceDay" resultType="com.xsrw.wms.equipment.domain.DEquipmentMaintenanceDay">
+        <include refid="selectDEquipmentMaintenanceDayVo"/>
+        <if test="params.dataScope != null  and params.dataScope != ''">
+            inner join sys_user u on u.user_name = dequipmentmaintenanceday.create_by and u.status = '0'
+            inner join sys_dept d on u.dept_id = d.dept_id and d.status = '0'
+        </if>
+        <if test="equName != null ">left join d_equipment e ON dequipmentmaintenanceday.equipment_id = e.id</if>
+        <if test="executorName != null  and executorName != ''">left join sys_user z ON z.user_id = dequipmentmaintenanceday.executor_id</if>
+        <where>
+            dequipmentmaintenanceday.del_flag = '0'
+            <if test="equipmentId != null "> and dequipmentmaintenanceday.equipment_id = #{equipmentId}</if>
+            <if test="partName != null  and partName != ''"> and dequipmentmaintenanceday.part_name like concat('%', #{partName}, '%')</if>
+            <if test="content != null  and content != ''"> and dequipmentmaintenanceday.content = #{content}</if>
+            <if test="maintenanceType != null "> and dequipmentmaintenanceday.maintenance_type = #{maintenanceType}</if>
+            <if test="isExternal != null "> and dequipmentmaintenanceday.is_external = #{isExternal}</if>
+            <if test="externalCompany != null  and externalCompany != ''"> and dequipmentmaintenanceday.external_company = #{externalCompany}</if>
+            <if test="planDay != null  and planDay != ''"> and dequipmentmaintenanceday.plan_day = #{planDay}</if>
+            <if test="trueDay != null  and trueDay != ''"> and dequipmentmaintenanceday.true_day = #{trueDay}</if>
+            <if test="executorId != null "> and dequipmentmaintenanceday.executor_id = #{executorId}</if>
+            <if test="executorName != null  and executorName != ''"> and z.user_name like concat('%', #{executorName}, '%')</if>
+            <if test="status != null "> and dequipmentmaintenanceday.status = #{status}</if>
+            <if test="type != null "> and dequipmentmaintenanceday.type = #{type}</if>
+            <if test="source != null "> and dequipmentmaintenanceday.source = #{source}</if>
+            <if test="equName != null "> and e.name like concat('%', #{equName}, '%')</if>
+            <if test="dayNo != null "> and dequipmentmaintenanceday.day_no = #{dayNo}</if>
+            <if test="createTimeSearch != null "> and DATE_FORMAT(create_time,"%Y-%m-%d") = #{createTimeSearch}</if>
+            <if test="equFaultLv != null "> and dequipmentmaintenanceday.equ_fault_lv = #{equFaultLv}</if>
+
+
+
+
+        </where>
+        <!-- 数据范围过滤 -->
+        ${params.dataScope}
+    </select>
+
+    <delete id="deleteDEquipmentMaintenanceDayById" parameterType="Long">
+         update d_equipment_maintenance_day set del_flag = '1' where id = #{id}
+    </delete>
+
+    <delete id="deleteDEquipmentMaintenanceDayByIds" parameterType="String">
+        update d_equipment_maintenance_day set del_flag = '1' where id in
+        <foreach item="id" collection="array" open="(" separator="," close=")">
+            #{id}
+        </foreach>
+    </delete>
+    <select id="byListApp" resultType="com.xsrw.wms.equipment.domain.DEquipmentMaintenanceDay">
+        SELECT
+        a.id AS dayid,
+        b.id,
+        b.`name` AS equName,
+        b.equ_no,
+        c.nick_name AS userName,
+        a.plan_day,
+        a.status
+        FROM
+        d_equipment_maintenance_day a
+        LEFT JOIN d_equipment b ON a.equipment_id = b.id
+        LEFT JOIN sys_user c ON a.executor_id = c.user_id
+        WHERE
+            a.del_flag = 0
+            <if test="type != null and type != ''">and a.`type` = #{type}</if>
+            <if test="time != null and time != ''">and (a.plan_day = #{time} or a.plan_day is null)</if>
+            <if test="executorId != null">and a.executor_id = #{executorId}</if>
+    </select>
+</mapper>

@@ -1,0 +1,45 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper
+        PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.xsrw.wms.inout.mapper.TOutRecheckMapper">
+
+    <sql id="selectTOutRecheckVo">
+        select a.id, a.origin_id, a.status, a.remark, a.create_by, a.create_time, a.update_by, a.update_time, a.dept_id, a.dept_name, a.del_flag
+        from t_out_recheck a
+    </sql>
+
+    <select id="selectTOutRecheckList" parameterType="com.xsrw.wms.inout.domain.TOutRecheck"
+            resultType="com.xsrw.wms.inout.domain.vo.TOutRecheckVO">
+        select a.id, a.origin_id, a.status, a.remark, a.create_by, a.create_time,
+        b.code ,b.`type`,b.new_local,b.dept_name, b.create_by as maker
+        from t_out_recheck a
+        left join t_out_delivery b on a.origin_id = b.id
+        <if test="params.dataScope != null  and params.dataScope != ''">
+            inner join sys_user u on u.user_name = a.create_by and u.status = '0'
+            inner join sys_dept d on u.dept_id = d.dept_id and d.status = '0'
+        </if>
+        <where>
+            a.del_flag = '0'
+            <if test="originId != null ">and a.origin_id = #{originId}</if>
+            <if test="status != null  and status != ''">and a.status = #{status}</if>
+            <if test="code != null and code != ''">and b.code like concat('%',#{code},'%')</if>
+            <if test="type != null and type != ''">and b.type = #{type}</if>
+        </where>
+        <!-- 数据范围过滤 -->
+        ${params.dataScope}
+        order by  a.create_time desc
+    </select>
+
+    <delete id="deleteTOutRecheckById" parameterType="Long">
+         update t_out_recheck set del_flag = '1' where id = #{id}
+    </delete>
+
+    <delete id="deleteTOutRecheckByIds" parameterType="String">
+        update t_out_recheck set del_flag = '1' where id in
+        <foreach item="id" collection="array" open="(" separator="," close=")">
+            #{id}
+        </foreach>
+    </delete>
+
+</mapper>

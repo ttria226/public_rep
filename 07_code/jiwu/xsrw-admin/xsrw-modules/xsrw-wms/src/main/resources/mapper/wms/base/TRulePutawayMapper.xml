@@ -1,0 +1,67 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper
+        PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.xsrw.wms.base.mapper.TRulePutawayMapper">
+
+    <sql id="selectTRulePutawayVo">
+        select a.id, a.material_id, a.status, a.remark, a.create_by, a.create_time, a.update_by, a.update_time, a.dept_id, a.dept_name, a.del_flag
+        from t_rule_putaway a
+    </sql>
+
+    <select id="selectTRulePutawayList" parameterType="com.xsrw.wms.base.domain.dto.TRulePutawayDTO"
+            resultType="com.xsrw.wms.base.domain.vo.TRulePutawayVO">
+        select a.id, a.material_id, a.status, a.remark, a.create_by, a.create_time,
+        b.code as materialCode, b.name as materialName
+        from t_rule_putaway a
+        left join t_material b on a.material_id = b.id
+        <if test="params.dataScope != null  and params.dataScope != ''">
+            inner join sys_user u on u.user_name = a.create_by and u.status = '0'
+            inner join sys_dept d on u.dept_id = d.dept_id and d.status = '0'
+        </if>
+        <where>
+            a.del_flag = '0'
+            <if test="materialId != null ">and a.material_id = #{materialId}</if>
+            <if test="status != null  and status != ''">and a.status = #{status}</if>
+            <if test="materialCode != null  and materialCode != ''">and b.code like concat('%',#{materialCode},'%')</if>
+            <if test="materialName != null  and materialName != ''">and b.name like concat('%',#{materialName},'%')</if>
+        </where>
+        <!-- 数据范围过滤 -->
+        ${params.dataScope}
+        order by a.create_time desc
+    </select>
+
+    <delete id="deleteTRulePutawayById" parameterType="Long">
+         update t_rule_putaway set del_flag = '1' where id = #{id}
+    </delete>
+
+    <delete id="deleteTRulePutawayByIds" parameterType="String">
+        update t_rule_putaway set del_flag = '1' where id in
+        <foreach item="id" collection="array" open="(" separator="," close=")">
+            #{id}
+        </foreach>
+    </delete>
+
+    <select id="selectInfoById" resultType="com.xsrw.wms.base.domain.vo.TRulePutawayVO">
+        select a.id, a.material_id, a.status, a.remark, a.create_by, a.create_time, a.update_by, a.update_time, a.dept_id, a.dept_name,
+        b.code as materialCode, b.name as materialName
+        from t_rule_putaway a
+        left join t_material b on a.material_id = b.id
+        where a.id = #{id}
+    </select>
+
+    <select id="selectPutawayListByMaterIds" resultType="com.xsrw.wms.base.domain.vo.TRulePutawayVO">
+        select a.material_id , b.location_id, ifnull(tl.pallet_num, tt.location_id+'') as inStockStatus
+        from t_rule_putaway a
+        inner join t_rule_putaway_detail b on a.id = b.rule_putaway_id
+        left join t_location tl on b.location_id = tl.id
+        left join t_tray tt on tl.pallet_num = tt.code
+        where a.del_flag = '0' and b.del_flag = '0'
+            and a.status = '1'
+            and a.material_id in
+            <foreach collection="materialIds" item="materialId" open="(" index="," close=")" separator=",">
+                #{materialId}
+            </foreach>
+    </select>
+
+</mapper>

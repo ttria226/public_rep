@@ -1,0 +1,98 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper
+PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+"http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.xsrw.wms.check.mapper.TCheckResultMapper">
+
+    <sql id="selectTCheckResultVo">
+        select tcheckresult.id, tcheckresult.task_detail_id, tcheckresult.status, tcheckresult.auditor, tcheckresult.check_difference_count, tcheckresult.remark, tcheckresult.create_by, tcheckresult.create_time, tcheckresult.update_by, tcheckresult.update_time, tcheckresult.dept_id, tcheckresult.dept_name, tcheckresult.del_flag
+        from t_check_result tcheckresult
+    </sql>
+
+<!--    <select id="selectTCheckResultList" parameterType="com.xsrw.wms.check.domain.TCheckResult" resultType="com.xsrw.wms.check.domain.TCheckResult">-->
+<!--        <include refid="selectTCheckResultVo"/>-->
+<!--        <if test="params.dataScope != null  and params.dataScope != ''">-->
+<!--            inner join sys_user u on u.user_name = tcheckresult.create_by and u.status = '0'-->
+<!--            inner join sys_dept d on u.dept_id = d.dept_id and d.status = '0'-->
+<!--        </if>-->
+<!--        <where>-->
+<!--            tcheckresult.del_flag = '0'-->
+<!--            <if test="taskDetailId != null "> and tcheckresult.task_detail_id = #{taskDetailId}</if>-->
+<!--            <if test="status != null  and status != ''"> and tcheckresult.status = #{status}</if>-->
+<!--            <if test="auditor != null  and auditor != ''"> and tcheckresult.auditor = #{auditor}</if>-->
+<!--            <if test="checkDifferenceCount != null "> and tcheckresult.check_difference_count = #{checkDifferenceCount}</if>-->
+<!--        </where>-->
+<!--        &lt;!&ndash; 数据范围过滤 &ndash;&gt;-->
+<!--        ${params.dataScope}-->
+<!--    </select>-->
+
+    <select id="selectCheckResultList" parameterType="com.xsrw.wms.check.domain.dto.CheckResultDTO" resultType="com.xsrw.wms.check.domain.vo.CheckResultVO">
+        select
+        sum(check_difference_count) as check_difference_count,
+        material_id,
+        dept_id,
+        dept_name
+        from (
+        (
+        select
+        sum(t5.actual_count - t5.rfid_head_count) as check_difference_count,
+        t5.material_id,
+        t2.dept_id,
+        t2.dept_name
+        from
+        t_check_result t1
+        inner join t_task_detail t2 on
+        t1.task_detail_id = t2.id
+        inner join t_check_history t5 on
+        t1.task_detail_id = t5.task_detail_id
+        and t5.del_flag = '0'
+        where
+        t1.del_flag = '0'
+        <if test="deptId != null">and t2.dept_id = #{deptId}</if>
+        <if test="materialIds != null">and t5.material_id in
+            <foreach collection="materialIds" item="item" open="(" close=")" separator=",">
+                #{item}
+            </foreach>
+        </if>
+        <if test="materialCode != null and materialCode != ''">and t5.material_code like concat('%',#{materialCode},'%') </if>
+        group by t2.dept_id,t2.dept_name,t5.material_id
+        ) union all (
+        select
+        sum(t6.actual_count - t6.predict_count)  as check_difference_count,
+        t6.material_id,
+        t2.dept_id,
+        t2.dept_name
+        from
+        t_check_result t1
+        inner join t_task_detail t2 on
+        t1.task_detail_id = t2.id
+        inner join t_check_area_history t6 on
+        t1.task_detail_id = t6.task_detail_id
+        and t6.del_flag = '0'
+        and t6.status = '4'
+        where
+        t1.del_flag = '0'
+        <if test="deptId != null">and t2.dept_id = #{deptId}</if>
+        <if test="materialIds != null">and t6.material_id in
+            <foreach collection="materialIds" item="item" open="(" close=")" separator=",">
+                #{item}
+            </foreach>
+        </if>
+        <if test="materialCode != null and materialCode != ''">and t6.batch_number like concat('%', #{materialCode}, '%')</if>
+        group by t2.dept_id,t2.dept_name,t6.material_id
+        )
+        ) t group by dept_id,dept_name,material_id
+    </select>
+
+    <delete id="deleteTCheckResultById" parameterType="Long">
+         update t_check_result set del_flag = '1' where id = #{id}
+    </delete>
+
+    <delete id="deleteTCheckResultByIds" parameterType="String">
+        update t_check_result set del_flag = '1' where id in
+        <foreach item="id" collection="array" open="(" separator="," close=")">
+            #{id}
+        </foreach>
+    </delete>
+
+</mapper>

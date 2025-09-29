@@ -1,0 +1,44 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper
+PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+"http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.xsrw.wms.check.mapper.TCheckHistoryMapper">
+
+    <sql id="selectTCheckHistoryVo">
+        select tcheckhistory.id, tcheckhistory.task_detail_id, tcheckhistory.stock_id, tcheckhistory.predict_count, tcheckhistory.actual_count, tcheckhistory.material_id, tcheckhistory.batch_number, tcheckhistory.material_code, tcheckhistory.tray_id, tcheckhistory.remark, tcheckhistory.create_by, tcheckhistory.create_time, tcheckhistory.update_by, tcheckhistory.update_time, tcheckhistory.dept_id, tcheckhistory.dept_name, tcheckhistory.del_flag
+        from t_check_history tcheckhistory
+    </sql>
+
+    <select id="selectTCheckHistoryList" parameterType="com.xsrw.wms.check.domain.TCheckHistory" resultType="com.xsrw.wms.check.domain.TCheckHistory">
+        <include refid="selectTCheckHistoryVo"/>
+        <if test="params.dataScope != null  and params.dataScope != ''">
+            inner join sys_user u on u.user_name = tcheckhistory.create_by and u.status = '0'
+            inner join sys_dept d on u.dept_id = d.dept_id and d.status = '0'
+        </if>
+        <where>
+            tcheckhistory.del_flag = '0'
+            <if test="taskDetailId != null "> and tcheckhistory.task_detail_id = #{taskDetailId}</if>
+            <if test="stockId != null "> and tcheckhistory.stock_id = #{stockId}</if>
+            <if test="predictCount != null "> and tcheckhistory.predict_count = #{predictCount}</if>
+            <if test="actualCount != null "> and tcheckhistory.actual_count = #{actualCount}</if>
+            <if test="materialId != null "> and tcheckhistory.material_id = #{materialId}</if>
+            <if test="batchNumber != null  and batchNumber != ''"> and tcheckhistory.batch_number = #{batchNumber}</if>
+            <if test="materialCode != null  and materialCode != ''"> and tcheckhistory.material_code like concat('%', #{materialCode}, '%')</if>
+            <if test="trayId != null "> and tcheckhistory.tray_id = #{trayId}</if>
+        </where>
+        <!-- 数据范围过滤 -->
+        ${params.dataScope}
+    </select>
+
+    <delete id="deleteTCheckHistoryById" parameterType="Long">
+         update t_check_history set del_flag = '1' where id = #{id}
+    </delete>
+
+    <delete id="deleteTCheckHistoryByIds" parameterType="String">
+        update t_check_history set del_flag = '1' where id in
+        <foreach item="id" collection="array" open="(" separator="," close=")">
+            #{id}
+        </foreach>
+    </delete>
+
+</mapper>

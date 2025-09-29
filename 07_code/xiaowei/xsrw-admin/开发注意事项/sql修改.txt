@@ -1,0 +1,101 @@
+----------------------20231017之后
+ALTER TABLE t_location ADD floor_type varchar(2) NULL COMMENT '楼层（1一楼 2二楼）';
+ALTER TABLE `t_location CHANGE floor_type floor_type varchar(2) NULL COMMENT '楼层（1一楼 2二楼）' AFTER pallet_num;
+
+
+ALTER TABLE t_material_detail MODIFY COLUMN status char(1) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci DEFAULT '0' NULL COMMENT '状态(0新增;1已入库;2已出库未复核; 3已出库已复核;4已组盘未入库)';
+
+----------------------20231101
+ALTER TABLE `xsrw-cloud`.t_location ADD extention_type int NULL COMMENT '双伸位类型（1伸位2伸位）';
+ALTER TABLE `xsrw-cloud`.t_location ADD extention_frist_id varchar(10) NULL COMMENT '双伸位一伸位id';
+
+
+UPDATE t_location set name = CONCAT('一楼', name) WHERE floor_type = 1;
+
+UPDATE t_location set name = CONCAT('二楼', name) WHERE floor_type = 2;
+
+UPDATE t_location tl set extention_type = 2 where tl.floor_type = '1' and tl.location_column in (1,5,6,10);
+UPDATE t_location tl set extention_type = 1 where tl.floor_type = '1' and tl.location_column in (2,4,7,9);
+
+
+
+
+-- 菜单 SQL
+insert into sys_menu (menu_name, parent_id, order_num, path, component, is_frame, is_cache, menu_type, visible, status, perms, icon, create_by, create_time, update_by, update_time, remark)
+values('rfid打印记录', '2018', '1', 'print', 'base/print/index', 1, 0, 'C', '0', '0', 'base:print:list', '#', 'admin', sysdate(), '', null, 'rfid打印记录菜单');
+
+
+
+
+
+
+
+
+
+
+--------------------------------
+新增了个表
+CREATE TABLE `t_material_detail_print` (
+  `id` bigint NOT NULL AUTO_INCREMENT COMMENT '主键',
+  `advance_registration_id` bigint DEFAULT NULL COMMENT '入库单详情标识',
+  `print_count` int DEFAULT NULL COMMENT '打印次数',
+  `print_time` datetime DEFAULT NULL COMMENT '打印时间',
+  `min_unit` bigint DEFAULT NULL COMMENT '最小单位',
+  `min_unit_name` varchar(100) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci DEFAULT NULL COMMENT '最小单位名称',
+  `max_unit` bigint DEFAULT NULL COMMENT '最大单位',
+  `max_unit_name` varchar(100) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci DEFAULT NULL COMMENT '最大单位名称',
+  `convert_count` int DEFAULT NULL COMMENT '转换数量',
+  `sum_count` int DEFAULT NULL COMMENT '打印数量',
+  `rfid_heads` text COLLATE utf8mb4_unicode_ci COMMENT '关联的rfid分组编号，多个,分割',
+  `status` char(1) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci DEFAULT NULL COMMENT '状态',
+  `remark` varchar(500) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci DEFAULT NULL COMMENT '备注',
+  `create_by` varchar(64) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci DEFAULT NULL COMMENT '创建者',
+  `create_time` datetime DEFAULT NULL COMMENT '创建时间',
+  `update_by` varchar(64) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci DEFAULT NULL COMMENT '更新者',
+  `update_time` datetime DEFAULT NULL COMMENT '更新时间',
+  `dept_id` bigint DEFAULT NULL COMMENT '部门',
+  `dept_name` varchar(50) CHARACTER SET utf8mb4 COLLATE utf8mb4_0900_ai_ci DEFAULT NULL COMMENT '部门名称',
+  `del_flag` char(1) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci DEFAULT '0' COMMENT '删除(0未删除 1删除)',
+  PRIMARY KEY (`id`) USING BTREE
+) ENGINE=InnoDB AUTO_INCREMENT=21 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci ROW_FORMAT=DYNAMIC COMMENT='rfid打印记录表'
+--------------------------------
+-- 按钮父菜单ID
+SELECT @parentId := LAST_INSERT_ID();
+
+-- 按钮 SQL
+insert into sys_menu (menu_name, parent_id, order_num, path, component, is_frame, is_cache, menu_type, visible, status, perms, icon, create_by, create_time, update_by, update_time, remark)
+values('rfid打印记录查询', @parentId, '1',  '#', '', 1, 0, 'F', '0', '0', 'base:print:query',        '#', 'admin', sysdate(), '', null, '');
+
+insert into sys_menu (menu_name, parent_id, order_num, path, component, is_frame, is_cache, menu_type, visible, status, perms, icon, create_by, create_time, update_by, update_time, remark)
+values('rfid打印记录新增', @parentId, '2',  '#', '', 1, 0, 'F', '0', '0', 'base:print:add',          '#', 'admin', sysdate(), '', null, '');
+
+insert into sys_menu (menu_name, parent_id, order_num, path, component, is_frame, is_cache, menu_type, visible, status, perms, icon, create_by, create_time, update_by, update_time, remark)
+values('rfid打印记录修改', @parentId, '3',  '#', '', 1, 0, 'F', '0', '0', 'base:print:edit',         '#', 'admin', sysdate(), '', null, '');
+
+insert into sys_menu (menu_name, parent_id, order_num, path, component, is_frame, is_cache, menu_type, visible, status, perms, icon, create_by, create_time, update_by, update_time, remark)
+values('rfid打印记录删除', @parentId, '4',  '#', '', 1, 0, 'F', '0', '0', 'base:print:remove',       '#', 'admin', sysdate(), '', null, '');
+
+
+ALTER TABLE `xsrw-cloud`.t_material_detail ADD rfid_head varchar(100) NULL COMMENT '总rfid';
+
+
+ALTER TABLE `xsrw-cloud`.t_material ADD important_status varchar(1) NULL COMMENT '重点物料标识（0否1是）';
+
+
+
+-----------------------------------------最新-2023.11.15，至2023.11.13发版本后最新
+ALTER TABLE `xsrw-cloud`.t_task_wcs ADD main_task_no varchar(100) NULL COMMENT '关联主任务编号（移库使用）';
+ALTER TABLE `xsrw-cloud`.t_task_wcs CHANGE main_task_no main_task_no varchar(100) NULL COMMENT '关联主任务编号（移库使用）' AFTER task_no;
+
+
+ALTER TABLE `xsrw-cloud`.t_task_wcs_record ADD main_task_no VARCHAR(100) NULL COMMENT '主任务编号（双伸位移库时候）';
+
+ALTER TABLE `xsrw-cloud`.`t_location`
+MODIFY COLUMN `code` varchar(255) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci NULL DEFAULT NULL COMMENT '编码' AFTER `id`;
+
+
+
+
+ALTER TABLE `xsrw-cloud-test`.t_material ADD stock_insure int NULL COMMENT '库存保险额';
+ALTER TABLE `xsrw-cloud-test`.t_material CHANGE stock_insure stock_insure int NULL COMMENT '库存保险额' AFTER stock_min;
+

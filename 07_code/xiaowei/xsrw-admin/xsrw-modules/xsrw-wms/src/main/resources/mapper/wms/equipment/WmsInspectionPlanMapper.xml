@@ -1,0 +1,73 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper
+PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+"http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.xsrw.wms.equipment.mapper.WmsInspectionPlanMapper">
+
+    <sql id="selectWmsInspectionPlanVo">
+        select inspectionplan.id, inspectionplan.name, inspectionplan.inspection_line, inspectionplan.type, inspectionplan.plan_start_time, inspectionplan.plan_end_time, inspectionplan.inspection_start_time, inspectionplan.inspection_end_time, inspectionplan.inspector, inspectionplan.remark, inspectionplan.create_by, inspectionplan.create_time, inspectionplan.update_by, inspectionplan.update_time, inspectionplan.dept_id, inspectionplan.dept_name, inspectionplan.del_flag, inspectionplan.month_or_day,inspectionplan.status,inspectionplan.inspector_name,inspectionplan.status,inspectionplan.sign_type
+        from d_inspection_plan inspectionplan
+    </sql>
+
+    <select id="selectWmsInspectionPlanList" parameterType="com.xsrw.wms.equipment.domain.WmsInspectionPlan" resultType="com.xsrw.wms.equipment.domain.WmsInspectionPlan">
+        <include refid="selectWmsInspectionPlanVo"/>
+        <if test="params.dataScope != null  and params.dataScope != ''">
+            inner join sys_user u on u.user_name = inspectionplan.create_by and u.status = '0'
+            inner join sys_dept d on u.dept_id = d.dept_id and d.status = '0'
+        </if>
+        <where>
+            inspectionplan.del_flag = '0'
+            <if test="name != null  and name != ''"> and inspectionplan.name like concat('%', #{name}, '%')</if>
+            <if test="inspectionLine != null  and inspectionLine != ''"> and inspectionplan.inspection_line = #{inspectionLine}</if>
+            <if test="type != null "> and inspectionplan.type = #{type}</if>
+            <if test="planStartTime != null "> and inspectionplan.plan_start_time = #{planStartTime}</if>
+            <if test="planEndTime != null "> and inspectionplan.plan_end_time = #{planEndTime}</if>
+            <if test="inspectionStartTime != null "> and inspectionplan.inspection_start_time = #{inspectionStartTime}</if>
+            <if test="inspectionEndTime != null "> and inspectionplan.inspection_end_time = #{inspectionEndTime}</if>
+            <if test="inspector != null  and inspector != ''"> and inspectionplan.inspector = #{inspector}</if>
+            <if test="status != null"> and inspectionplan.status = #{status}</if>
+
+        </where>
+        <!-- 数据范围过滤 -->
+        ${params.dataScope}
+        order BY create_time desc
+    </select>
+
+    <delete id="deleteWmsInspectionPlanById" parameterType="Long">
+         update d_inspection_plan set del_flag = '1' where id = #{id}
+    </delete>
+
+    <delete id="deleteWmsInspectionPlanByIds" parameterType="String">
+        update d_inspection_plan set del_flag = '1' where id in
+        <foreach item="id" collection="array" open="(" separator="," close=")">
+            #{id}
+        </foreach>
+    </delete>
+
+
+    <delete id="deleteWmsInspectionPlanDetailByPlanIds" parameterType="String">
+        delete from d_inspection_plan_detail where plan_id in
+        <foreach item="planId" collection="array" open="(" separator="," close=")">
+            #{planId}
+        </foreach>
+    </delete>
+
+    <delete id="deleteWmsInspectionPlanDetailByPlanId" parameterType="Long">
+        delete from d_inspection_plan_detail where plan_id = #{planId}
+    </delete>
+
+    <insert id="batchWmsInspectionPlanDetail">
+        insert into d_inspection_plan_detail( id, plan_id, equipment_id, create_by, remark, create_time, update_by, update_time, dept_id, dept_name, del_flag) values
+		<foreach item="item" index="index" collection="list" separator=",">
+            ( #{item.id}, #{item.planId}, #{item.equipmentId}, #{item.createBy}, #{item.remark}, #{item.createTime}, #{item.updateBy}, #{item.updateTime}, #{item.deptId}, #{item.deptName}, #{item.delFlag})
+        </foreach>
+    </insert>
+    <select id="getuserName" resultType="java.lang.String">
+        SELECT
+            nick_name
+        FROM
+            sys_user
+        WHERE
+            user_id = #{userid}
+    </select>
+</mapper>

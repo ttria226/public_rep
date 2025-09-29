@@ -1,0 +1,59 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper
+PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+"http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.xsrw.wms.loan.mapper.DLoanReturnRecordMapper">
+
+    <sql id="selectDLoanReturnRecordVo">
+        select a.id, a.loan_register_id, a.loan_by, a.loan_count, a.loan_time, a.return_count, a.return_time, a.status, a.remark, a.create_by, a.create_time, a.update_by, a.update_time, a.dept_id, a.dept_name, a.del_flag
+        from d_loan_return_record a
+    </sql>
+
+    <select id="selectDLoanReturnRecordList" parameterType="com.xsrw.wms.loan.domain.dto.DLoanReturnRecordDTO" resultType="com.xsrw.wms.loan.domain.vo.DLoanReturnRecordVO">
+        select a.id, a.loan_register_id, a.loan_by, a.loan_count, a.loan_time, a.return_count, a.return_time, a.status, a.remark, a.create_by, a.create_time,
+        de.name as equipmentName,
+        de.equ_no as equipmentCode,
+        d.available_count
+        from d_loan_return_record a
+        left join d_loan_register d on a.loan_register_id = d.id
+        left join d_equipment de on d.equipment_id = de.id
+        <if test="params.dataScope != null  and params.dataScope != ''">
+            inner join sys_user u on u.user_name = a.create_by and u.status = '0'
+            inner join sys_dept d on u.dept_id = d.dept_id and d.status = '0'
+        </if>
+        <where>
+            a.del_flag = '0'
+            <if test="loanRegisterId != null "> and a.loan_register_id = #{loanRegisterId}</if>
+            <if test="loanBy != null  and loanBy != ''"> and a.loan_by = #{loanBy}</if>
+            <if test="loanCount != null "> and a.loan_count = #{loanCount}</if>
+            <if test="loanTime != null "> and a.loan_time = #{loanTime}</if>
+            <if test="returnCount != null "> and a.return_count = #{returnCount}</if>
+            <if test="returnTime != null "> and a.return_time = #{returnTime}</if>
+            <if test="status != null  and status != ''"> and a.status = #{status}</if>
+            <if test="equipmentName != null  and equipmentName != ''">
+                and de.name like concat('%', #{equipmentName}, '%')
+            </if>
+        </where>
+        <!-- 数据范围过滤 -->
+        ${params.dataScope}
+        order by a.create_time desc
+    </select>
+
+    <delete id="deleteDLoanReturnRecordById" parameterType="Long">
+         update d_loan_return_record set del_flag = '1' where id = #{id}
+    </delete>
+
+    <delete id="deleteDLoanReturnRecordByIds" parameterType="String">
+        update d_loan_return_record set del_flag = '1' where id in
+        <foreach item="id" collection="array" open="(" separator="," close=")">
+            #{id}
+        </foreach>
+    </delete>
+
+    <select id="getLoanCountByRegisterId" parameterType="long" resultType="long">
+        select IFNULL(sum(a.loan_count) - sum(a.return_count),0) as count
+        from d_loan_return_record a
+        where a.del_flag = '0' and a.loan_register_id = #{registerId} and a.status in ('1', '2')
+    </select>
+
+</mapper>

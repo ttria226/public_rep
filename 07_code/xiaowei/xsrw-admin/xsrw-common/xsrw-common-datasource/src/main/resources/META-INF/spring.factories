@@ -1,0 +1,2 @@
+org.springframework.boot.autoconfigure.EnableAutoConfiguration=\
+  com.xsrw.common.datasource.handler.CreateAndUpdateMetaObjectHandler

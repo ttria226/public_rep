@@ -1,0 +1,2 @@
+com.xsrw.common.log.service.AsyncLogService
+com.xsrw.common.log.aspect.LogAspect

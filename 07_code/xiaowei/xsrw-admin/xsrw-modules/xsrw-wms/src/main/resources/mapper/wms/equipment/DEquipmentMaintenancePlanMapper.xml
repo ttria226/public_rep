@@ -1,0 +1,54 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper
+PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+"http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.xsrw.wms.equipment.mapper.DEquipmentMaintenancePlanMapper">
+
+    <sql id="selectDEquipmentMaintenancePlanVo">
+        select dequipmentmaintenanceplan.id, dequipmentmaintenanceplan.equipment_id, dequipmentmaintenanceplan.equ_no, dequipmentmaintenanceplan.part_name, dequipmentmaintenanceplan.content, dequipmentmaintenanceplan.plan_name, dequipmentmaintenanceplan.plan_type, dequipmentmaintenanceplan.interval_day, dequipmentmaintenanceplan.plan_start_time, dequipmentmaintenanceplan.plan_end_time, dequipmentmaintenanceplan.maintenance_type, dequipmentmaintenanceplan.is_external, dequipmentmaintenanceplan.external_company, dequipmentmaintenanceplan.status, dequipmentmaintenanceplan.remark, dequipmentmaintenanceplan.create_by, dequipmentmaintenanceplan.create_time, dequipmentmaintenanceplan.update_by, dequipmentmaintenanceplan.update_time, dequipmentmaintenanceplan.dept_id, dequipmentmaintenanceplan.dept_name, dequipmentmaintenanceplan.del_flag
+        from d_equipment_maintenance_plan dequipmentmaintenanceplan
+    </sql>
+
+    <select id="selectDEquipmentMaintenancePlanList" parameterType="com.xsrw.wms.equipment.domain.DEquipmentMaintenancePlan" resultType="com.xsrw.wms.equipment.domain.DEquipmentMaintenancePlan">
+        <include refid="selectDEquipmentMaintenancePlanVo"/>
+        <if test="params.dataScope != null  and params.dataScope != ''">
+            inner join sys_user u on u.user_name = dequipmentmaintenanceplan.create_by and u.status = '0'
+            inner join sys_dept d on u.dept_id = d.dept_id and d.status = '0'
+        </if>
+        <if test="equName != null ">
+            left join d_equipment equ ON equ.id = dequipmentmaintenanceplan.equipment_id
+        </if>
+        <where>
+            dequipmentmaintenanceplan.del_flag = '0'
+            <if test="equipmentId != null "> and dequipmentmaintenanceplan.equipment_id = #{equipmentId}</if>
+            <if test="equNo != null  and equNo != ''"> and dequipmentmaintenanceplan.equ_no = #{equNo}</if>
+            <if test="partName != null  and partName != ''"> and dequipmentmaintenanceplan.part_name like concat('%', #{partName}, '%')</if>
+            <if test="content != null  and content != ''"> and dequipmentmaintenanceplan.content = #{content}</if>
+            <if test="planName != null  and planName != ''"> and dequipmentmaintenanceplan.plan_name like concat('%', #{planName}, '%')</if>
+            <if test="planType != null "> and dequipmentmaintenanceplan.plan_type = #{planType}</if>
+            <if test="intervalDay != null "> and dequipmentmaintenanceplan.interval_day = #{interval}</if>
+            <if test="planStartTime != null "> and dequipmentmaintenanceplan.plan_start_time = #{planStartTime}</if>
+            <if test="planEndTime != null "> and dequipmentmaintenanceplan.plan_end_time = #{planEndTime}</if>
+            <if test="maintenanceType != null "> and dequipmentmaintenanceplan.maintenance_type = #{maintenanceType}</if>
+            <if test="isExternal != null "> and dequipmentmaintenanceplan.is_external = #{isExternal}</if>
+            <if test="externalCompany != null  and externalCompany != ''"> and dequipmentmaintenanceplan.external_company = #{externalCompany}</if>
+            <if test="status != null "> and dequipmentmaintenanceplan.status = #{status}</if>
+            <if test="type != null "> and dequipmentmaintenanceplan.type = #{type}</if>
+            <if test="equName != null ">and equ.name  like concat('%', #{equName}, '%')</if>
+        </where>
+        <!-- 数据范围过滤 -->
+        ${params.dataScope}
+    </select>
+
+    <delete id="deleteDEquipmentMaintenancePlanById" parameterType="Long">
+         update d_equipment_maintenance_plan set del_flag = '1' where id = #{id}
+    </delete>
+
+    <delete id="deleteDEquipmentMaintenancePlanByIds" parameterType="String">
+        update d_equipment_maintenance_plan set del_flag = '1' where id in
+        <foreach item="id" collection="array" open="(" separator="," close=")">
+            #{id}
+        </foreach>
+    </delete>
+
+</mapper>

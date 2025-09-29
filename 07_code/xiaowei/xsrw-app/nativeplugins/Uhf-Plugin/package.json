@@ -1,0 +1,20 @@
+{
+    "name": "Uhf-Plugin",
+    "id": "Uhf-Plugin",
+    "version": "1.0.0",
+    "description": "Uhf扫描Hbuilder插件",
+    "_dp_type":"nativeplugin",
+    "_dp_nativeplugin":{
+        "android": {
+            "plugins": [
+                {
+                    "type": "module",
+                    "name": "Uhf-Plugin",
+                    "class": "com.uhf.uniplugin_uhf.UhfDeviceModule"
+                }
+            ],
+            "integrateType": "aar",
+            "minSdkVersion": "21"
+        }
+    }
+}

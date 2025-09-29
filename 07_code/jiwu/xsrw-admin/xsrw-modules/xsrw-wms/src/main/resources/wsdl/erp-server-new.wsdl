@@ -1,0 +1,233 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<wsdl:definitions name="ErpServiceService" targetNamespace="http://service.webservice.wms.xsrw.com/" xmlns:xsd="http://www.w3.org/2001/XMLSchema" xmlns:wsdl="http://schemas.xmlsoap.org/wsdl/" xmlns:tns="http://service.webservice.wms.xsrw.com/" xmlns:soap="http://schemas.xmlsoap.org/wsdl/soap/" xmlns:ns1="http://schemas.xmlsoap.org/soap/http">
+  <wsdl:types>
+    <xs:schema elementFormDefault="unqualified" targetNamespace="http://service.webservice.wms.xsrw.com/" version="1.0" xmlns:xs="http://www.w3.org/2001/XMLSchema">
+      <xs:element name="wsInOut" type="tns:wsInOut"/>
+      <xs:element name="wsInOutResponse" type="tns:wsInOutResponse"/>
+      <xs:element name="wsInventory" type="tns:wsInventory"/>
+      <xs:element name="wsInventoryResponse" type="tns:wsInventoryResponse"/>
+      <xs:element name="wsStockQuery" type="tns:wsStockQuery"/>
+      <xs:element name="wsStockQueryResponse" type="tns:wsStockQueryResponse"/>
+      <xs:complexType name="wsStockQuery">
+        <xs:sequence>
+          <xs:element maxOccurs="unbounded" minOccurs="0" name="arg0" type="tns:stockQueryRequest"/>
+        </xs:sequence>
+      </xs:complexType>
+      <xs:complexType name="stockQueryRequest">
+        <xs:sequence>
+          <xs:element minOccurs="0" name="BESTQ" type="xs:string"/>
+          <xs:element minOccurs="0" name="CHARG" type="xs:string"/>
+          <xs:element minOccurs="0" name="FIELD1" type="xs:string"/>
+          <xs:element minOccurs="0" name="FIELD2" type="xs:string"/>
+          <xs:element minOccurs="0" name="FIELD3" type="xs:string"/>
+          <xs:element minOccurs="0" name="FIELD4" type="xs:string"/>
+          <xs:element minOccurs="0" name="FIELD5" type="xs:string"/>
+          <xs:element minOccurs="0" name="GESME" type="xs:decimal"/>
+          <xs:element minOccurs="0" name="LGBER" type="xs:string"/>
+          <xs:element minOccurs="0" name="LGNUM" type="xs:string"/>
+          <xs:element minOccurs="0" name="LGORT" type="xs:string"/>
+          <xs:element minOccurs="0" name="LGPLA" type="xs:string"/>
+          <xs:element minOccurs="0" name="LGTYP" type="xs:string"/>
+          <xs:element minOccurs="0" name="LIFNR" type="xs:string"/>
+          <xs:element minOccurs="0" name="MAKT" type="xs:string"/>
+          <xs:element minOccurs="0" name="MATNR" type="xs:string"/>
+          <xs:element minOccurs="0" name="MEINS" type="xs:string"/>
+          <xs:element minOccurs="0" name="NAME1" type="xs:string"/>
+          <xs:element minOccurs="0" name="POSID" type="xs:string"/>
+          <xs:element minOccurs="0" name="SALKV" type="xs:decimal"/>
+          <xs:element minOccurs="0" name="SOBKZ" type="xs:string"/>
+          <xs:element minOccurs="0" name="VERPR" type="xs:decimal"/>
+          <xs:element minOccurs="0" name="WERKS" type="xs:string"/>
+        </xs:sequence>
+      </xs:complexType>
+      <xs:complexType name="wsStockQueryResponse">
+        <xs:sequence>
+          <xs:element minOccurs="0" name="return" type="tns:stockQueryResponse"/>
+        </xs:sequence>
+      </xs:complexType>
+      <xs:complexType name="stockQueryResponse">
+        <xs:sequence>
+          <xs:element minOccurs="0" name="LGNUM" type="xs:string"/>
+          <xs:element minOccurs="0" name="WERKS" type="xs:string"/>
+          <xs:element minOccurs="0" name="ZFLAG" type="xs:string"/>
+          <xs:element minOccurs="0" name="ZMSG" type="xs:string"/>
+        </xs:sequence>
+      </xs:complexType>
+      <xs:complexType name="wsInOut">
+        <xs:sequence>
+          <xs:element maxOccurs="unbounded" minOccurs="0" name="arg0" type="tns:inOutRequest"/>
+        </xs:sequence>
+      </xs:complexType>
+      <xs:complexType name="inOutRequest">
+        <xs:sequence>
+          <xs:element minOccurs="0" name="BESTQ" type="xs:string"/>
+          <xs:element minOccurs="0" name="CHARG" type="xs:string"/>
+          <xs:element minOccurs="0" name="DMBTR" type="xs:decimal"/>
+          <xs:element minOccurs="0" name="EBELN" type="xs:string"/>
+          <xs:element minOccurs="0" name="EBELP" type="xs:string"/>
+          <xs:element minOccurs="0" name="LGNUM" type="xs:string"/>
+          <xs:element minOccurs="0" name="LGORT" type="xs:string"/>
+          <xs:element minOccurs="0" name="LIFNR" type="xs:string"/>
+          <xs:element minOccurs="0" name="MAKTG" type="xs:string"/>
+          <xs:element minOccurs="0" name="MAKTX" type="xs:string"/>
+          <xs:element minOccurs="0" name="MATKL" type="xs:string"/>
+          <xs:element minOccurs="0" name="MATNR" type="xs:string"/>
+          <xs:element minOccurs="0" name="MEINS" type="xs:string"/>
+          <xs:element minOccurs="0" name="MENGE" type="xs:decimal"/>
+          <xs:element minOccurs="0" name="NAME1" type="xs:string"/>
+          <xs:element minOccurs="0" name="PSPNR" type="xs:string"/>
+          <xs:element minOccurs="0" name="RSNUM" type="xs:string"/>
+          <xs:element minOccurs="0" name="RSPOS" type="xs:string"/>
+          <xs:element minOccurs="0" name="SOBKZ" type="xs:string"/>
+          <xs:element minOccurs="0" name="TBNUM" type="xs:string"/>
+          <xs:element minOccurs="0" name="TBPOS" type="xs:string"/>
+          <xs:element minOccurs="0" name="TRART" type="xs:string"/>
+          <xs:element minOccurs="0" name="USNAM_MKPF" type="xs:string"/>
+          <xs:element minOccurs="0" name="WERKS" type="xs:string"/>
+          <xs:element minOccurs="0" name="WGBEZ" type="xs:string"/>
+          <xs:element minOccurs="0" name="ZZDJBM" type="xs:string"/>
+          <xs:element minOccurs="0" name="ZZDJHH" type="xs:string"/>
+          <xs:element minOccurs="0" name="ZZYL1" type="xs:string"/>
+          <xs:element minOccurs="0" name="ZZYL2" type="xs:string"/>
+          <xs:element minOccurs="0" name="ZZYL3" type="xs:string"/>
+          <xs:element minOccurs="0" name="ZZYWLX" type="xs:string"/>
+        </xs:sequence>
+      </xs:complexType>
+      <xs:complexType name="wsInOutResponse">
+        <xs:sequence>
+          <xs:element maxOccurs="unbounded" minOccurs="0" name="return" type="tns:inOutResponse"/>
+        </xs:sequence>
+      </xs:complexType>
+      <xs:complexType name="inOutResponse">
+        <xs:sequence>
+          <xs:element minOccurs="0" name="ZMESSAGE" type="xs:string"/>
+          <xs:element minOccurs="0" name="ZRETURNFLAG" type="xs:string"/>
+          <xs:element minOccurs="0" name="ZZDJBM" type="xs:string"/>
+          <xs:element minOccurs="0" name="ZZDJHH" type="xs:string"/>
+        </xs:sequence>
+      </xs:complexType>
+      <xs:complexType name="wsInventory">
+        <xs:sequence>
+          <xs:element maxOccurs="unbounded" minOccurs="0" name="arg0" type="tns:inventoryRequest"/>
+        </xs:sequence>
+      </xs:complexType>
+      <xs:complexType name="inventoryRequest">
+        <xs:sequence>
+          <xs:element minOccurs="0" name="IVNUM" type="xs:string"/>
+          <xs:element maxOccurs="unbounded" minOccurs="0" name="inventoryDetailRequestList" nillable="true" type="tns:inventoryDetailRequest"/>
+          <xs:element minOccurs="0" name="LGNUM" type="xs:string"/>
+          <xs:element minOccurs="0" name="PDATU" type="xs:string"/>
+          <xs:element minOccurs="0" name="UNAME" type="xs:string"/>
+          <xs:element minOccurs="0" name="WERKS" type="xs:string"/>
+        </xs:sequence>
+      </xs:complexType>
+      <xs:complexType name="inventoryDetailRequest">
+        <xs:sequence>
+          <xs:element minOccurs="0" name="BESTQ" type="xs:string"/>
+          <xs:element minOccurs="0" name="CHARG" type="xs:string"/>
+          <xs:element minOccurs="0" name="FIELD1" type="xs:string"/>
+          <xs:element minOccurs="0" name="FIELD2" type="xs:string"/>
+          <xs:element minOccurs="0" name="FIELD3" type="xs:string"/>
+          <xs:element minOccurs="0" name="FIELD4" type="xs:string"/>
+          <xs:element minOccurs="0" name="FIELD5" type="xs:string"/>
+          <xs:element minOccurs="0" name="GESME" type="xs:decimal"/>
+          <xs:element minOccurs="0" name="IVNUM" type="xs:string"/>
+          <xs:element minOccurs="0" name="IVPOS" type="xs:string"/>
+          <xs:element minOccurs="0" name="LGNUM" type="xs:string"/>
+          <xs:element minOccurs="0" name="LGORT" type="xs:string"/>
+          <xs:element minOccurs="0" name="LGPLA" type="xs:string"/>
+          <xs:element minOccurs="0" name="LGTYP" type="xs:string"/>
+          <xs:element minOccurs="0" name="LTYPT" type="xs:string"/>
+          <xs:element minOccurs="0" name="MAKTX" type="xs:string"/>
+          <xs:element minOccurs="0" name="MATNR" type="xs:string"/>
+          <xs:element minOccurs="0" name="MEINS" type="xs:string"/>
+          <xs:element minOccurs="0" name="PDATU" type="xs:string"/>
+          <xs:element minOccurs="0" name="PS_POSNR" type="xs:string"/>
+          <xs:element minOccurs="0" name="PS_PSPT" type="xs:string"/>
+          <xs:element minOccurs="0" name="SOBKZ" type="xs:string"/>
+          <xs:element minOccurs="0" name="UNAME" type="xs:string"/>
+          <xs:element minOccurs="0" name="WERKS" type="xs:string"/>
+        </xs:sequence>
+      </xs:complexType>
+      <xs:complexType name="wsInventoryResponse">
+        <xs:sequence>
+          <xs:element maxOccurs="unbounded" minOccurs="0" name="return" type="tns:inventoryResponse"/>
+        </xs:sequence>
+      </xs:complexType>
+      <xs:complexType name="inventoryResponse">
+        <xs:sequence>
+          <xs:element minOccurs="0" name="IVNUM" type="xs:string"/>
+          <xs:element minOccurs="0" name="ZFLAG" type="xs:string"/>
+          <xs:element minOccurs="0" name="ZMSG" type="xs:string"/>
+        </xs:sequence>
+      </xs:complexType>
+    </xs:schema>
+  </wsdl:types>
+  <wsdl:message name="wsInOut">
+    <wsdl:part element="tns:wsInOut" name="parameters"/>
+  </wsdl:message>
+  <wsdl:message name="wsInOutResponse">
+    <wsdl:part element="tns:wsInOutResponse" name="parameters"/>
+  </wsdl:message>
+  <wsdl:message name="wsInventoryResponse">
+    <wsdl:part element="tns:wsInventoryResponse" name="parameters"/>
+  </wsdl:message>
+  <wsdl:message name="wsStockQuery">
+    <wsdl:part element="tns:wsStockQuery" name="parameters"/>
+  </wsdl:message>
+  <wsdl:message name="wsInventory">
+    <wsdl:part element="tns:wsInventory" name="parameters"/>
+  </wsdl:message>
+  <wsdl:message name="wsStockQueryResponse">
+    <wsdl:part element="tns:wsStockQueryResponse" name="parameters"/>
+  </wsdl:message>
+  <wsdl:portType name="ErpService">
+    <wsdl:operation name="wsStockQuery">
+      <wsdl:input message="tns:wsStockQuery" name="wsStockQuery"/>
+      <wsdl:output message="tns:wsStockQueryResponse" name="wsStockQueryResponse"/>
+    </wsdl:operation>
+    <wsdl:operation name="wsInOut">
+      <wsdl:input message="tns:wsInOut" name="wsInOut"/>
+      <wsdl:output message="tns:wsInOutResponse" name="wsInOutResponse"/>
+    </wsdl:operation>
+    <wsdl:operation name="wsInventory">
+      <wsdl:input message="tns:wsInventory" name="wsInventory"/>
+      <wsdl:output message="tns:wsInventoryResponse" name="wsInventoryResponse"/>
+    </wsdl:operation>
+  </wsdl:portType>
+  <wsdl:binding name="ErpServiceServiceSoapBinding" type="tns:ErpService">
+    <soap:binding style="document" transport="http://schemas.xmlsoap.org/soap/http"/>
+    <wsdl:operation name="wsStockQuery">
+      <soap:operation soapAction="" style="document"/>
+      <wsdl:input name="wsStockQuery">
+        <soap:body use="literal"/>
+      </wsdl:input>
+      <wsdl:output name="wsStockQueryResponse">
+        <soap:body use="literal"/>
+      </wsdl:output>
+    </wsdl:operation>
+    <wsdl:operation name="wsInOut">
+      <soap:operation soapAction="" style="document"/>
+      <wsdl:input name="wsInOut">
+        <soap:body use="literal"/>
+      </wsdl:input>
+      <wsdl:output name="wsInOutResponse">
+        <soap:body use="literal"/>
+      </wsdl:output>
+    </wsdl:operation>
+    <wsdl:operation name="wsInventory">
+      <soap:operation soapAction="" style="document"/>
+      <wsdl:input name="wsInventory">
+        <soap:body use="literal"/>
+      </wsdl:input>
+      <wsdl:output name="wsInventoryResponse">
+        <soap:body use="literal"/>
+      </wsdl:output>
+    </wsdl:operation>
+  </wsdl:binding>
+  <wsdl:service name="ErpServiceService">
+    <wsdl:port binding="tns:ErpServiceServiceSoapBinding" name="ErpServicePort">
+      <soap:address location="http://10.132.1.75:51100/ws/erp-server"/>
+    </wsdl:port>
+  </wsdl:service>
+</wsdl:definitions>

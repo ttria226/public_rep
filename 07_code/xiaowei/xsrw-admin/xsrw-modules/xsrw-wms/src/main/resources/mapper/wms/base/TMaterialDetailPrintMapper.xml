@@ -1,0 +1,81 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper
+        PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.xsrw.wms.base.mapper.TMaterialDetailPrintMapper">
+
+    <sql id="selectTMaterialDetailPrintVo">
+        select a.id, a.advance_registration_id, a.print_count, a.print_time, a.min_unit, a.min_unit_name, a.max_unit, a.max_unit_name, a.convert_count, a.status, a.remark, a.create_by, a.create_time, a.update_by, a.update_time, a.dept_id, a.dept_name, a.del_flag
+        from t_material_detail_print a
+    </sql>
+
+    <select id="selectTMaterialDetailPrintList" parameterType="com.xsrw.wms.base.domain.TMaterialDetailPrint"
+            resultType="com.xsrw.wms.base.domain.vo.TMaterialDetailPrintVO">
+        select
+            a.id, a.advance_registration_id, a.print_count, a.print_time, a.min_unit, a.min_unit_name,
+            a.max_unit, a.max_unit_name, a.convert_count, a.create_time,a.sum_count,a.rfid_heads,a.print_type,
+            b.material_id , b.detection_count, b.batch_code ,
+            c.code as advanceDeliveryCode,
+            tm.name as materialName,tm.code as materialCode
+        from t_material_detail_print a
+        left join t_advance_delivery_detail b on a.advance_registration_id = b.id
+        left join t_advance_delivery c on b.advance_delivery_id = c.id
+        left join t_material tm on b.material_id = tm.id
+        <if test="params.dataScope != null  and params.dataScope != ''">
+            inner join sys_user u on u.user_name = a.create_by and u.status = '0'
+            inner join sys_dept d on u.dept_id = d.dept_id and d.status = '0'
+        </if>
+        <where>
+            a.del_flag = '0'
+            <if test="advanceRegistrationId != null ">and a.advance_registration_id =
+                #{advanceRegistrationId}
+            </if>
+            <if test="id != null ">and a.id = #{id}</if>
+            <if test="printCount != null ">and a.print_count = #{printCount}</if>
+            <if test="printTime != null ">and a.print_time = #{printTime}</if>
+            <if test="minUnit != null ">and a.min_unit = #{minUnit}</if>
+            <if test="minUnitName != null  and minUnitName != ''">and a.min_unit_name like
+                concat('%', #{minUnitName}, '%')
+            </if>
+            <if test="maxUnit != null ">and a.max_unit = #{maxUnit}</if>
+            <if test="maxUnitName != null  and maxUnitName != ''">and a.max_unit_name like
+                concat('%', #{maxUnitName}, '%')
+            </if>
+            <if test="convertCount != null ">and a.convert_count = #{convertCount}</if>
+            <if test="status != null  and status != ''">and a.status = #{status}</if>
+            <if test="batchCode != null  and batchCode != ''">and b.batch_code like concat('%',
+                #{batchCode}, '%')
+            </if>
+            <if test="materialCode != null  and materialCode != ''">and tm.code like concat('%',#{materialCode},'%')</if>
+            <if test="materialName != null  and materialName != ''">and tm.name like concat('%',#{materialName},'%')</if>
+            <if test="advanceDeliveryCode != null  and advanceDeliveryCode != ''">and `c`.code like concat('%', #{advanceDeliveryCode}, '%')</if>
+        </where>
+        <!-- 数据范围过滤 -->
+        ${params.dataScope}
+        order by a.create_time desc
+    </select>
+
+    <delete id="deleteTMaterialDetailPrintById" parameterType="Long">
+         update t_material_detail_print set del_flag = '1' where id = #{id}
+    </delete>
+
+    <delete id="deleteTMaterialDetailPrintByIds" parameterType="String">
+        update t_material_detail_print set del_flag = '1' where id in
+        <foreach item="id" collection="array" open="(" separator="," close=")">
+            #{id}
+        </foreach>
+    </delete>
+
+
+    <delete id="deletePrintByRegisterId" parameterType="long">
+        update t_material_detail_print set del_flag = '1' where advance_registration_id = #{id}
+    </delete>
+
+    <delete id="deletePrintByRegisterIds" parameterType="String">
+        update t_material_detail_print set del_flag = '1' where advance_registration_id in
+        <foreach item="id" collection="array" open="(" separator="," close=")">
+            #{id}
+        </foreach>
+    </delete>
+
+</mapper>

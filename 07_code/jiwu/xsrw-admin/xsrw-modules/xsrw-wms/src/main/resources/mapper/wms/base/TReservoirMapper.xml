@@ -1,0 +1,69 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper
+PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+"http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.xsrw.wms.base.mapper.TReservoirMapper">
+
+    <sql id="selectTReservoirVo">
+        select treservoir.id, treservoir.name, treservoir.code, treservoir.area_id, treservoir.status, treservoir.remark, treservoir.create_by, treservoir.create_time, treservoir.update_by, treservoir.update_time, treservoir.dept_id, treservoir.dept_name, treservoir.del_flag
+        from t_reservoir treservoir
+    </sql>
+
+    <select id="selectTReservoirList" parameterType="com.xsrw.wms.base.domain.TReservoir" resultType="com.xsrw.wms.base.domain.vo.TReservoirVO">
+        select tr.id, tr.status, tr.area_id, tr.name, tr.code, tr.create_by, tr.create_time, tr.update_by, tr.update_time, tr.remark, tr.del_flag,
+        ta.name as areaName,tc.name as categoryName,tr.code
+        from t_reservoir tr
+        left join t_area ta on ta.id = tr.area_id
+        left join t_category tc on tr.id = tc.id
+        <if test="params.dataScope != null  and params.dataScope != ''">
+            inner join sys_user u on u.user_name = tr.create_by and u.status = '0'
+            inner join sys_dept d on u.dept_id = d.dept_id and d.status = '0'
+        </if>
+        <where>
+            tr.del_flag = '0'
+            <if test="areaId != null "> and tr.area_id = #{areaId}</if>
+            <if test="name != null  and name != ''"> and tr.name like concat('%', #{name}, '%')</if>
+            <if test="status != null  and status != ''"> and tr.status = #{status}</if>
+        </where>
+        <!-- 数据范围过滤 -->
+        ${params.dataScope}
+        order by tr.create_time desc
+    </select>
+
+    <delete id="deleteTReservoirById" parameterType="Long">
+         update t_reservoir set del_flag = '1' where id = #{id}
+    </delete>
+
+    <delete id="deleteTReservoirByIds" parameterType="String">
+        update t_reservoir set del_flag = '1' where id in
+        <foreach item="id" collection="array" open="(" separator="," close=")">
+            #{id}
+        </foreach>
+    </delete>
+
+    <update id="deleteTReservoirStatusByIds">
+        update t_reservoir set status = #{status} where id = #{id}
+    </update>
+
+    <select id="getReservoirList" resultType="java.util.Map">
+        SELECT tr.id,tr.`name`,tr.`status`,IFNULL(ta.`name`,'') as areaName
+        FROM t_reservoir tr
+        left join t_area ta on ta.id=tr.area_id
+        WHERE tr.del_flag='0'
+        <if test="areaId!=null and areaId!=0"> and tr.area_id=#{areaId}</if>
+    </select>
+
+    <select id="warehouseUseStatistics" resultType="com.xsrw.wms.kanban.domain.vo.WarehouseUseStatisticsVO">
+        SELECT
+        r.name reservoirName,
+        IFNULL(a.name,'') as areaName,
+        count(l.id) totalCount,
+        count(case when l.status='1' and l.goods_allocation_status!=1 then 1 else null end) useCount
+        FROM t_reservoir r
+        left join t_area a on a.id=r.area_id
+        left join t_location l on r.id=l.reservoir_id  AND l.del_flag='0' AND l.location_type='0'
+        WHERE r.del_flag='0'
+        <if test="areaId!=null and areaId!=0"> and r.area_id=#{areaId}</if>
+        group by r.id
+    </select>
+</mapper>

@@ -1,0 +1,287 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper
+        PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.xsrw.wms.inout.mapper.TTaskWcsMapper">
+
+    <sql id="selectTTaskWcsVo">
+        select a.id, a.task_type, a.task_status, a.tray_id, a.tray_code, a.location_id, a.`result` , a.task_no, a.purpose_position, a.start_position, a.receive_time, a.start_time, a.end_time, a.error_code, a.error_message, a.current_line_number, a.request_count, a.send_data, a.accept_data, a.remark, a.create_by, a.create_time, a.update_by, a.update_time, a.dept_id, a.dept_name, a.del_flag
+           , a.delivery_type
+        from t_task_wcs a
+    </sql>
+
+    <select id="selectTTaskWcsList" parameterType="com.xsrw.wms.inout.domain.TTaskWcs"
+            resultType="com.xsrw.wms.inout.domain.vo.TTaskWcsVO">
+        select a.id, a.task_type, a.task_status, a.tray_id, a.tray_code, a.location_id, a.`result` , a.task_no, a.purpose_position, a.start_position, a.receive_time, a.start_time, a.end_time, a.error_code, a.error_message, a.current_line_number, a.request_count, a.send_data, a.accept_data, a.remark, a.create_by, a.create_time,a.main_task_no
+        ,tl.name as locationName,tl.extention_type ,a.delivery_type,a.priority,tr.status as trayStatus
+        from t_task_wcs a
+        left join t_location tl on a.location_id = tl.id
+        left join t_tray tr on a.tray_id = tr.id
+        <if test="params.dataScope != null  and params.dataScope != ''">
+            inner join sys_user u on u.user_name = a.create_by and u.status = '0'
+            inner join sys_dept d on u.dept_id = d.dept_id and d.status = '0'
+        </if>
+        <where>
+            a.del_flag = '0'
+            <if test="taskType != null  and taskType != ''">and a.task_type = #{taskType}</if>
+            <if test="taskStatus != null  and taskStatus != ''">and a.task_status = #{taskStatus}</if>
+            <if test="trayId != null ">and a.tray_id = #{trayId}</if>
+            <if test="trayCode != null  and trayCode != ''">and a.tray_code like concat('%', #{trayCode}, '%')
+            </if>
+            <if test="locationId != null ">and a.location_id = #{locationId}</if>
+            <if test="result != null ">and a.result = #{result}</if>
+            <if test="taskNo != null ">and a.task_no = #{taskNo}</if>
+            <if test="purposePosition != null  and purposePosition != ''">and a.purpose_position =
+                #{purposePosition}
+            </if>
+            <if test="startPosition != null  and startPosition != ''">and a.start_position = #{startPosition}
+            </if>
+            <if test="receiveTime != null ">and a.receive_time = #{receiveTime}</if>
+            <if test="startTime != null ">and a.start_time = #{startTime}</if>
+            <if test="endTime != null ">and a.end_time = #{endTime}</if>
+            <if test="errorCode != null ">and a.error_code like concat('%', #{errorCode}, '%')</if>
+            <if test="errorMessage != null  and errorMessage != ''">and a.error_message = #{errorMessage}</if>
+            <if test="currentLineNumber != null ">and a.current_line_number = #{currentLineNumber}</if>
+            <if test="requestCount != null ">and a.request_count = #{requestCount}</if>
+            <if test="sendData != null  and sendData != ''">and a.send_data = #{sendData}</if>
+            <if test="acceptData != null  and acceptData != ''">and a.accept_data = #{acceptData}</if>
+        </where>
+        <!-- 数据范围过滤 -->
+        ${params.dataScope}
+        order by a.task_status = '2' desc,a.priority desc,a.create_time desc
+    </select>
+
+    <delete id="deleteTTaskWcsById" parameterType="Long">
+         update t_task_wcs set del_flag = '1' where id = #{id}
+    </delete>
+
+    <delete id="deleteTTaskWcsByIds" parameterType="String">
+        update t_task_wcs set del_flag = '1' where id in
+        <foreach item="id" collection="array" open="(" separator="," close=")">
+            #{id}
+        </foreach>
+    </delete>
+
+    <select id="selectStatusWcsListByTrayId" resultType="com.xsrw.wms.inout.domain.vo.TTaskWcsDetailVO">
+        select
+            a.id ,
+            a.task_status ,
+            b.task_id,
+            b.`type` as taskType,
+            b.origin_id
+        from t_task_wcs a
+        left join t_task_wcs_detail b on a.id = b.task_id
+        where a.tray_id = #{trayId} and b.`type` = #{taskType} and a.task_status in ('1','2','4')
+    </select>
+
+    <update id="updateStatusByIds">
+        update t_task_wcs set task_status = #{taskWcs.taskStatus}
+         <if test="taskWcs.locationId != null">,location_id = #{taskWcs.locationId}</if>
+         where id in
+        <foreach item="id" collection="taskIds" open="(" separator="," close=")">
+            #{id}
+        </foreach>
+    </update>
+
+    <select id="selectListByParam" resultType="com.xsrw.wms.dispatch.domain.vo.BusinessMonitorsVO">
+
+        select
+            t.*,
+            m.code materialCode,
+            m.name materialName
+        from
+            (select
+                tw.task_no taskNo,
+                tw.id id,
+                l.name locationName,
+                r.name reservoirName,
+                tw.task_status taskStatus,
+                tw.task_type taskType,
+                (case tw.task_status when '1' then null else tw.create_by end) createBy,
+                (case tw.task_status when '1' then null else tw.create_time end) createTime,
+                (case twd.type when  '1' then ti.material_id when '2' then tto.material_id when '5' then td.material_id else null end) materialId,
+                (case twd.type when  '1' then ti.predict_count when '2' then tto.predict_count when '5' then td.predict_count else null end) predictCount,
+                (case twd.type when  '1' then ti.actual_count when '2' then tto.actual_count when '5' then td.actual_count else null end) actualCount,
+                (case twd.type when  '1' then ti.batch_code  else null end) batchCode
+            from t_task_wcs tw
+            left join t_task_wcs_detail twd on twd.task_id=tw.id
+            left join t_task_in ti on ti.id=twd.origin_id
+            left join t_task_out tto on tto.id=twd.origin_id
+            left join t_task_detail td on td.id=twd.origin_id
+            left join t_location l on l.id=tw.location_id
+            left join t_reservoir r on r.id=l.reservoir_id
+            where tw.del_flag='0'
+            <if test="taskNo!=null and taskNo!=''">
+                and tw.task_no  like concat('%',#{taskNo},'%')
+            </if>
+            <if test="taskStatus!=null and taskStatus!=''">
+                and tw.task_status =#{taskStatus}
+            </if>
+            )  t
+        left join t_material m on m.id=t.materialId
+        where 1=1
+        <if test="materialName!=null and materialName!=''">
+            and m.name like concat('%',#{materialName},'%')
+        </if>
+        order by t.id desc
+    </select>
+
+    <select id="selectListByKey" resultType="com.xsrw.wms.dispatch.domain.vo.WareHouseStatusVO">
+        select
+            sd.dept_name deptName,
+            sd.create_by createBy,
+            sd.create_time createTime,
+            ifnull(sm.library_count,0)  libraryCount,
+            count(case tw.task_type when '1' then 1 else null end) inTaskCount,
+            count(case tw.task_type when '2' then 1 else null end) outTaskCount,
+            count(case tw.task_type when '3' then 1 else null end) inventoryTaskCount
+        from sys_dept sd
+        left join (select sum(ifnull(library_count,0)) library_count,dept_id from t_stock_main where del_flag='0' group by dept_id) sm on sm.dept_id=sd.dept_id
+        left join t_task_wcs tw on tw.dept_id=sd.dept_id and tw.del_flag='0' and tw.task_type in('1','2','3')
+        where sd.del_flag='0'
+        <if test="deptId!=null">and sd.dept_id=#{deptId}</if>
+        group by sd.dept_id,sm.library_count
+        order by sd.create_time desc
+    </select>
+
+    <select id="selectTaskList" resultType="com.xsrw.wms.task.domain.vo.TaskQueryVO">
+
+        select
+        t.*,
+        m.code materialCode,
+        m.name materialName
+        from
+        (select
+        tw.task_no taskNo,
+        tw.id id,
+        l.name locationName,
+        r.name reservoirName,
+        tw.task_status taskStatus,
+        tw.task_type taskType,
+        (case tw.task_status when '1' then null else tw.create_by end) createBy,
+        (case tw.task_status when '1' then null else tw.create_time end) createTime,
+        (case twd.type when  '1' then ti.material_id when '2' then tto.material_id when '5' then td.material_id else null end) materialId,
+        (case twd.type when  '1' then ti.predict_count when '2' then tto.predict_count when '5' then td.predict_count else null end) predictCount,
+        (case twd.type when  '1' then ti.actual_count when '2' then tto.actual_count when '5' then td.actual_count else null end) actualCount,
+        (case twd.type when  '1' then ti.batch_code  else null end) batchCode
+        from t_task_wcs tw
+        left join t_task_wcs_detail twd on twd.task_id=tw.id
+        left join t_task_in ti on ti.id=twd.origin_id
+        left join t_task_out tto on tto.id=twd.origin_id
+        left join t_task_detail td on td.id=twd.origin_id
+        left join t_location l on l.id=tw.location_id
+        left join t_reservoir r on r.id=l.reservoir_id
+        <if test="params.dataScope != null  and params.dataScope != ''">
+            inner join sys_user u on u.user_name = tw.create_by and u.status = '0'
+            inner join sys_dept d on u.dept_id = d.dept_id and d.status = '0'
+        </if>
+        <!-- 数据范围过滤 -->
+        ${params.dataScope}
+        where tw.del_flag='0'
+        <if test="taskNo!=null and taskNo!=''">
+            and tw.task_no  like concat('%',#{taskNo},'%')
+        </if>
+        <if test="taskStatus!=null and taskStatus!=''">
+            and tw.task_status =#{taskStatus}
+        </if>)  t
+        left join t_material m on m.id=t.materialId
+        where 1=1
+        <if test="materialName!=null and materialName!=''">
+            and m.name like concat('%',#{materialName},'%')
+        </if>
+        order by t.id desc
+    </select>
+
+    <select id="selectWcsTaskList" resultType="com.xsrw.wms.kanban.domain.vo.TaskListVO">
+        select
+        l.name locationName,
+        tw.task_status taskStatus,
+        tw.task_type taskType,
+        tw.create_time  createTime,
+        tw.tray_code trayCode
+        from t_task_wcs tw
+        left join t_location l on l.id=tw.location_id
+        where tw.del_flag='0'
+        order by tw.id desc
+    </select>
+
+    <select id="selectStatisticsByParam" resultType="com.xsrw.wms.kanban.domain.vo.TaskStatusVO">
+        select
+            t1.notCompleteCount,
+            t2.underwayCount,
+            t3.hasCompleteCount
+        from
+            (select
+                 count(1) notCompleteCount
+             from t_task_wcs
+             where del_flag='0' and task_status='1' and task_type=#{taskType}) t1,
+            (select
+                 count(1) underwayCount
+             from t_task_wcs
+             where del_flag='0' and task_status='2' and task_type=#{taskType}) t2,
+            (select
+                 count(1) hasCompleteCount
+             from t_task_wcs
+             where del_flag='0' and task_status='3' and task_type=#{taskType}) t3
+    </select>
+
+    <select id="getTaskInfoByTrayCode" resultType="com.xsrw.wms.inout.domain.vo.TTaskWcsVO">
+        SELECT
+            a.id,
+            a.task_type,
+            a.tray_id,
+            a.tray_code,
+            a.location_id,
+            a.task_no,
+            b.`code` as locationCode,
+            b.floor_type,
+            b.location_plies,
+            b.pallet_node_id
+        FROM t_task_wcs a
+        LEFT JOIN t_location b ON a.location_id = b.id
+        WHERE a.del_flag = '0' AND a.task_status IN ('1','2') AND a.tray_code = #{trayCode}
+        <if test="taskType != null and taskType != ''">and a.task_type = #{taskType}</if>
+        order by a.id desc
+        limit 1
+    </select>
+
+    <select id="getTaskInfoByTaskNo" resultType="com.xsrw.wms.inout.domain.vo.TTaskWcsVO">
+        SELECT
+            a.id,
+            a.task_type,
+            a.tray_id,
+            a.tray_code,
+            a.location_id,
+            a.task_no,
+            a.purpose_position ,
+	        a.start_position ,
+            b.`code` as locationCode,
+            b.floor_type,
+            b.location_plies,
+            b.pallet_node_id
+        FROM t_task_wcs a
+        LEFT JOIN t_location b ON a.location_id = b.id
+        WHERE a.del_flag = '0' AND a.task_no = #{taskNo}
+        limit 1
+    </select>
+
+    <update id="updateStuasById">
+        update t_task_wcs set task_status = #{status} where id = #{id}
+    </update>
+
+    <select id="selectLastEndMove" resultType="com.xsrw.wms.inout.domain.TTaskWcs">
+        select
+            a.id, a.task_type, a.task_status,
+            a.tray_id, a.tray_code, a.location_id,
+            a.task_no, a.main_task_no,
+            a.purpose_position, a.start_position,
+            a.delivery_type, a.priority
+        from t_task_wcs a
+        inner join t_location tl on a.location_id = tl.id
+        where a.del_flag = '0' and tl.del_flag = '0' and a.task_type = '5'
+        and a.task_status = '3' and a.tray_code = #{trayCode}
+        and tl.pallet_node_id = #{tempPallet}
+        order by a.create_time desc
+        limit 1
+    </select>
+</mapper>

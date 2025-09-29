@@ -1,0 +1,54 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper
+        PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.xsrw.wms.stock.mapper.TMailForewarningMapper">
+
+    <sql id="selectTMailForewarningVo">
+        select a.id, a.type, a.receiver, a.status, a.remark, a.create_by, a.create_time, a.update_by, a.update_time, a.dept_id, a.dept_name, a.del_flag
+        from t_mail_forewarning a
+    </sql>
+
+    <select id="selectTMailForewarningList" parameterType="com.xsrw.wms.stock.domain.TMailForewarning"
+            resultType="com.xsrw.wms.stock.domain.TMailForewarning">
+        select
+        a.id, a.type, a.status, a.remark, a.create_by, a.create_time,
+        group_concat(su.user_name) as receiver
+        from t_mail_forewarning a
+        left join sys_user su on su.user_id regexp(select replace ( a.receiver , ',','|' ))
+        <if test="params.dataScope != null  and params.dataScope != ''">
+            inner join sys_user u on u.user_name = a.create_by and u.status = '0'
+            inner join sys_dept d on u.dept_id = d.dept_id and d.status = '0'
+        </if>
+        <where>
+            a.del_flag = '0'
+            <if test="type != null  and type != ''">and a.type = #{type}</if>
+            <if test="receiver != null  and receiver != ''">and a.receiver = #{receiver}</if>
+            <if test="status != null  and status != ''">and a.status = #{status}</if>
+        </where>
+        <!-- 数据范围过滤 -->
+        ${params.dataScope}
+        group by a.id
+    </select>
+
+    <delete id="deleteTMailForewarningById" parameterType="Long">
+         update t_mail_forewarning set del_flag = '1' where id = #{id}
+    </delete>
+
+    <delete id="deleteTMailForewarningByIds" parameterType="String">
+        update t_mail_forewarning set del_flag = '1' where id in
+        <foreach item="id" collection="array" open="(" separator="," close=")">
+            #{id}
+        </foreach>
+    </delete>
+
+    <select id="selectEmailAddressByType" resultType="string">
+        select distinct su.email
+        from t_mail_forewarning a
+        left join sys_user su on
+            su.user_id regexp(
+            select replace ( a.receiver , ',', '|' ))
+        where  a.`type` = #{type} and a.del_flag = '0' and a.status = '0' and su.email is not null and su.email &lt;&gt; ''
+    </select>
+
+</mapper>

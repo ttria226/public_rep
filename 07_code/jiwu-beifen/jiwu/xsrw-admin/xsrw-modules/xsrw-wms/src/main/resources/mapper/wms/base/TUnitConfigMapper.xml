@@ -1,0 +1,45 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper
+PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+"http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.xsrw.wms.base.mapper.TUnitConfigMapper">
+
+    <sql id="selectTUnitConfigVo">
+        select tunitconfig.id, tunitconfig.material_id, tunitconfig.min_unit_id, tunitconfig.max_unit_id,
+        tunitconfig.count, tunitconfig.status, tunitconfig.remark, tunitconfig.create_by, tunitconfig.create_time,
+        tunitconfig.update_by, tunitconfig.update_time, tunitconfig.dept_id, tunitconfig.dept_name, tunitconfig.del_flag,
+        tunitconfig.unit_config_name, tunitconfig.material_name, tunitconfig.min_unit_name, tunitconfig.max_unit_name
+        from t_unit_config tunitconfig
+    </sql>
+
+    <select id="selectTUnitConfigList" parameterType="com.xsrw.wms.base.domain.TUnitConfig" resultType="com.xsrw.wms.base.domain.vo.TUnitConfigVO">
+        <include refid="selectTUnitConfigVo"/>
+        <if test="params.dataScope != null  and params.dataScope != ''">
+            inner join sys_user u on u.user_name = tunitconfig.create_by and u.status = '0'
+            inner join sys_dept d on u.dept_id = d.dept_id and d.status = '0'
+        </if>
+        <where>
+            tunitconfig.del_flag = '0'
+            <if test="materialId != null "> and tunitconfig.material_id = #{materialId}</if>
+            <if test="minUnitId != null "> and tunitconfig.min_unit_id = #{minUnitId}</if>
+            <if test="maxUnitId != null "> and tunitconfig.max_unit_id = #{maxUnitId}</if>
+            <if test="count != null "> and tunitconfig.count = #{count}</if>
+            <if test="status != null and status != ''"> and tunitconfig.status = #{status}</if>
+            <if test="materialName != null and materialName != ''"> and tunitconfig.material_name like concat('%', #{materialName}, '%')</if>
+        </where>
+        <!-- 数据范围过滤 -->
+        ${params.dataScope}
+    </select>
+
+    <delete id="deleteTUnitConfigById" parameterType="Long">
+         update t_unit_config set del_flag = '1' where id = #{id}
+    </delete>
+
+    <delete id="deleteTUnitConfigByIds" parameterType="String">
+        update t_unit_config set del_flag = '1' where id in
+        <foreach item="id" collection="array" open="(" separator="," close=")">
+            #{id}
+        </foreach>
+    </delete>
+
+</mapper>

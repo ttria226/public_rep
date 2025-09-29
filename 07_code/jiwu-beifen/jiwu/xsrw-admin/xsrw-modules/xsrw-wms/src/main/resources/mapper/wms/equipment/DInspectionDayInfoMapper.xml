@@ -1,0 +1,39 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper
+PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+"http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.xsrw.wms.equipment.mapper.DInspectionDayInfoMapper">
+
+    <sql id="selectDInspectionDayInfoVo">
+        select dinspectiondayinfo.id, dinspectiondayinfo.day_id, dinspectiondayinfo.equipment_id, dinspectiondayinfo.img, dinspectiondayinfo.remark, dinspectiondayinfo.create_by, dinspectiondayinfo.create_time, dinspectiondayinfo.update_by, dinspectiondayinfo.update_time, dinspectiondayinfo.dept_id, dinspectiondayinfo.dept_name, dinspectiondayinfo.del_flag, dinspectiondayinfo.lat_and_lon, dinspectiondayinfo.region, dinspectiondayinfo.status
+        from d_inspection_day_info dinspectiondayinfo
+    </sql>
+
+    <select id="selectDInspectionDayInfoList" parameterType="com.xsrw.wms.equipment.domain.DInspectionDayInfo" resultType="com.xsrw.wms.equipment.domain.DInspectionDayInfo">
+        <include refid="selectDInspectionDayInfoVo"/>
+        <if test="params.dataScope != null  and params.dataScope != ''">
+            inner join sys_user u on u.user_name = dinspectiondayinfo.create_by and u.status = '0'
+            inner join sys_dept d on u.dept_id = d.dept_id and d.status = '0'
+        </if>
+        <where>
+            dinspectiondayinfo.del_flag = '0'
+            <if test="dayId != null "> and dinspectiondayinfo.day_id = #{dayId}</if>
+            <if test="equipmentId != null "> and dinspectiondayinfo.equipment_id = #{equipmentId}</if>
+            <if test="img != null  and img != ''"> and dinspectiondayinfo.img = #{img}</if>
+        </where>
+        <!-- 数据范围过滤 -->
+        ${params.dataScope}
+    </select>
+
+    <delete id="deleteDInspectionDayInfoById" parameterType="Long">
+         update d_inspection_day_info set del_flag = '1' where id = #{id}
+    </delete>
+
+    <delete id="deleteDInspectionDayInfoByIds" parameterType="String">
+        update d_inspection_day_info set del_flag = '1' where id in
+        <foreach item="id" collection="array" open="(" separator="," close=")">
+            #{id}
+        </foreach>
+    </delete>
+
+</mapper>

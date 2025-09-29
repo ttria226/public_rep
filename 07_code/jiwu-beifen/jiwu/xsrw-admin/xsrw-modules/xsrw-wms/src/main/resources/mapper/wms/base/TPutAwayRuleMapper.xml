@@ -1,0 +1,39 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper
+PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+"http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.xsrw.wms.base.mapper.TPutAwayRuleMapper">
+
+    <sql id="selectTPutAwayRuleVo">
+        select tputawayrule.id, tputawayrule.rule_no, tputawayrule.rule_desc, tputawayrule.status, tputawayrule.remark, tputawayrule.create_by, tputawayrule.create_time, tputawayrule.update_by, tputawayrule.update_time, tputawayrule.dept_id, tputawayrule.dept_name, tputawayrule.del_flag
+        from t_put_away_rule tputawayrule
+    </sql>
+
+    <select id="selectTPutAwayRuleList" parameterType="com.xsrw.wms.base.domain.TPutAwayRule" resultType="com.xsrw.wms.base.domain.TPutAwayRule">
+        <include refid="selectTPutAwayRuleVo"/>
+        <if test="params.dataScope != null  and params.dataScope != ''">
+            inner join sys_user u on u.user_name = tputawayrule.create_by and u.status = '0'
+            inner join sys_dept d on u.dept_id = d.dept_id and d.status = '0'
+        </if>
+        <where>
+            tputawayrule.del_flag = '0'
+            <if test="ruleNo != null  and ruleNo != ''"> and tputawayrule.rule_no = #{ruleNo}</if>
+            <if test="ruleDesc != null  and ruleDesc != ''"> and tputawayrule.rule_desc = #{ruleDesc}</if>
+            <if test="status != null "> and tputawayrule.status = #{status}</if>
+        </where>
+        <!-- 数据范围过滤 -->
+        ${params.dataScope}
+    </select>
+
+    <delete id="deleteTPutAwayRuleById" parameterType="Long">
+         update t_put_away_rule set del_flag = '1' where id = #{id}
+    </delete>
+
+    <delete id="deleteTPutAwayRuleByIds" parameterType="String">
+        update t_put_away_rule set del_flag = '1' where id in
+        <foreach item="id" collection="array" open="(" separator="," close=")">
+            #{id}
+        </foreach>
+    </delete>
+
+</mapper>

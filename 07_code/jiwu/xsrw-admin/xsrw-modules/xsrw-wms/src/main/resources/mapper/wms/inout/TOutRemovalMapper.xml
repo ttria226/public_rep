@@ -1,0 +1,65 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper
+PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+"http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.xsrw.wms.inout.mapper.TOutRemovalMapper">
+
+    <sql id="selectTOutRemovalVo">
+        select a.id, a.origin_id, a.status, a.remark, a.create_by, a.create_time, a.update_by, a.update_time, a.dept_id, a.dept_name, a.del_flag
+        from t_out_removal a
+    </sql>
+
+    <select id="selectTOutRemovalList" parameterType="com.xsrw.wms.inout.domain.TOutRemoval" resultType="com.xsrw.wms.inout.domain.vo.TOutRemovalVO">
+        select a.id, a.origin_id, a.status, a.remark, a.create_by, a.create_time,
+        b.code ,b.`type`,b.new_local,b.dept_name, b.create_by as maker
+        from t_out_removal a
+        left join t_out_delivery b on a.origin_id = b.id
+        <if test="params.dataScope != null  and params.dataScope != ''">
+            inner join sys_user u on u.user_name = a.create_by and u.status = '0'
+            inner join sys_dept d on u.dept_id = d.dept_id and d.status = '0'
+        </if>
+        <where>
+            a.del_flag = '0'
+            <if test="originId != null "> and a.origin_id = #{originId}</if>
+            <if test="status != null  and status != ''"> and a.status = #{status}</if>
+        </where>
+        <!-- 数据范围过滤 -->
+        ${params.dataScope}
+        order by a.create_time desc
+    </select>
+
+    <delete id="deleteTOutRemovalById" parameterType="Long">
+         update t_out_removal set del_flag = '1' where id = #{id}
+    </delete>
+
+    <delete id="deleteTOutRemovalByIds" parameterType="String">
+        update t_out_removal set del_flag = '1' where id in
+        <foreach item="id" collection="array" open="(" separator="," close=")">
+            #{id}
+        </foreach>
+    </delete>
+
+    <select id="selectDetailListByDeliveryId" resultType="com.xsrw.wms.inout.domain.TOutDeliveryDetail">
+        select
+            a.out_delivery_id,
+            a.material_id,
+            a.next_flag,
+            a.predict_count,
+            a.predict_receive_count,
+            a.receive_count,
+            a.small_predict_count,
+            a.small_receive_count,
+            a.remark,
+            b.code as materialCode,
+            b.name as materialName,
+            c.name as unitName,
+            d.return_count,
+            d.id
+        from t_out_delivery_detail a
+        left join t_material b on a.material_id = b.id
+        left join t_unit c on b.unit_id = c.id
+        left join t_out_removal_detail d on a.id = d.detail_origin_id
+        where a.del_flag = '0' and a.out_delivery_id = #{deliveryId}
+    </select>
+
+</mapper>

@@ -1,0 +1,43 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper
+PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+"http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.xsrw.wms.equipment.mapper.DExpBaseMapper">
+
+    <sql id="selectDExpBaseVo">
+        select dexpbase.id, dexpbase.title, dexpbase.base_type, dexpbase.type, dexpbase.tree_id, dexpbase.content, dexpbase.file_link, dexpbase.remark, dexpbase.create_by, dexpbase.create_time, dexpbase.update_by, dexpbase.update_time, dexpbase.dept_id, dexpbase.dept_name, dexpbase.del_flag
+        from d_exp_base dexpbase
+    </sql>
+
+    <select id="selectDExpBaseList" parameterType="com.xsrw.wms.equipment.domain.DExpBase" resultType="com.xsrw.wms.equipment.domain.DExpBase">
+        <include refid="selectDExpBaseVo"/>
+        <if test="params.dataScope != null  and params.dataScope != ''">
+            inner join sys_user u on u.user_name = dexpbase.create_by and u.status = '0'
+            inner join sys_dept d on u.dept_id = d.dept_id and d.status = '0'
+        </if>
+        <where>
+            dexpbase.del_flag = '0'
+            <if test="title != null  and title != ''">
+                AND dexpbase.title like concat('%', #{title}, '%')
+            </if>
+            <if test="treeId != null "> and dexpbase.tree_id = #{treeId}</if>
+            <if test="content != null  and content != ''"> and dexpbase.content = #{content}</if>
+            <if test="fileLink != null  and fileLink != ''"> and dexpbase.file_link = #{fileLink}</if>
+        </where>
+        <!-- 数据范围过滤 -->
+        ${params.dataScope}
+        order BY create_time desc
+    </select>
+
+    <delete id="deleteDExpBaseById" parameterType="Long">
+         update d_exp_base set del_flag = '1' where id = #{id}
+    </delete>
+
+    <delete id="deleteDExpBaseByIds" parameterType="String">
+        update d_exp_base set del_flag = '1' where id in
+        <foreach item="id" collection="array" open="(" separator="," close=")">
+            #{id}
+        </foreach>
+    </delete>
+
+</mapper>

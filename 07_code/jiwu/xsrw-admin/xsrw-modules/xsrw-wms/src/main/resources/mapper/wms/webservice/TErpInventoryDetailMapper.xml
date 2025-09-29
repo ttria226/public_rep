@@ -1,0 +1,216 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper
+PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+"http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.xsrw.wms.webservice.mapper.TErpInventoryDetailMapper">
+
+    <resultMap type="TErpInventoryDetail" id="TErpInventoryDetailResult">
+        <result property="id"    column="id"    />
+        <result property="ivnum"    column="ivnum"    />
+        <result property="ivpos"    column="ivpos"    />
+        <result property="lgnum"    column="lgnum"    />
+        <result property="lgtyp"    column="lgtyp"    />
+        <result property="ltypt"    column="ltypt"    />
+        <result property="lgpla"    column="lgpla"    />
+        <result property="werks"    column="werks"    />
+        <result property="lgort"    column="lgort"    />
+        <result property="matnr"    column="matnr"    />
+        <result property="maktx"    column="maktx"    />
+        <result property="charg"    column="charg"    />
+        <result property="bestq"    column="bestq"    />
+        <result property="gesme"    column="gesme"    />
+        <result property="meins"    column="meins"    />
+        <result property="sobkz"    column="sobkz"    />
+        <result property="pdatu"    column="pdatu"    />
+        <result property="uname"    column="uname"    />
+        <result property="psPosnr"    column="ps_posnr"    />
+        <result property="psPspt"    column="ps_pspt"    />
+        <result property="field1"    column="field1"    />
+        <result property="field2"    column="field2"    />
+        <result property="field3"    column="field3"    />
+        <result property="field4"    column="field4"    />
+        <result property="field5"    column="field5"    />
+        <result property="createBy"    column="create_by"    />
+        <result property="createTime"    column="create_time"    />
+        <result property="updateBy"    column="update_by"    />
+        <result property="updateTime"    column="update_time"    />
+    </resultMap>
+
+    <sql id="selectTErpInventoryDetailVo">
+        select id, ivnum, ivpos, lgnum, lgtyp, ltypt, lgpla, werks, lgort, matnr, maktx, charg, bestq, gesme, meins, sobkz, pdatu, uname, ps_posnr, ps_pspt, field1, field2, field3, field4, field5, create_by, create_time, update_by, update_time from t_erp_inventory_detail
+    </sql>
+
+    <select id="selectTErpInventoryDetailList" parameterType="TErpInventoryDetail" resultMap="TErpInventoryDetailResult">
+        <include refid="selectTErpInventoryDetailVo"/>
+        <where>
+            <if test="ivnum != null  and ivnum != ''"> and ivnum = #{ivnum}</if>
+            <if test="ivpos != null  and ivpos != ''"> and ivpos = #{ivpos}</if>
+            <if test="lgnum != null  and lgnum != ''"> and lgnum = #{lgnum}</if>
+            <if test="lgtyp != null  and lgtyp != ''"> and lgtyp = #{lgtyp}</if>
+            <if test="ltypt != null  and ltypt != ''"> and ltypt = #{ltypt}</if>
+            <if test="lgpla != null  and lgpla != ''"> and lgpla = #{lgpla}</if>
+            <if test="werks != null  and werks != ''"> and werks = #{werks}</if>
+            <if test="lgort != null  and lgort != ''"> and lgort = #{lgort}</if>
+            <if test="matnr != null  and matnr != ''"> and matnr = #{matnr}</if>
+            <if test="maktx != null  and maktx != ''"> and maktx = #{maktx}</if>
+            <if test="charg != null  and charg != ''"> and charg = #{charg}</if>
+            <if test="bestq != null  and bestq != ''"> and bestq = #{bestq}</if>
+            <if test="gesme != null "> and gesme = #{gesme}</if>
+            <if test="meins != null  and meins != ''"> and meins = #{meins}</if>
+            <if test="sobkz != null  and sobkz != ''"> and sobkz = #{sobkz}</if>
+            <if test="pdatu != null  and pdatu != ''"> and pdatu = #{pdatu}</if>
+            <if test="uname != null  and uname != ''"> and uname like concat('%', #{uname}, '%')</if>
+            <if test="psPosnr != null  and psPosnr != ''"> and ps_posnr = #{psPosnr}</if>
+            <if test="psPspt != null  and psPspt != ''"> and ps_pspt = #{psPspt}</if>
+            <if test="field1 != null  and field1 != ''"> and field1 = #{field1}</if>
+            <if test="field2 != null  and field2 != ''"> and field2 = #{field2}</if>
+            <if test="field3 != null  and field3 != ''"> and field3 = #{field3}</if>
+            <if test="field4 != null  and field4 != ''"> and field4 = #{field4}</if>
+            <if test="field5 != null  and field5 != ''"> and field5 = #{field5}</if>
+        </where>
+    </select>
+
+    <select id="selectTErpInventoryDetailById" parameterType="Long" resultMap="TErpInventoryDetailResult">
+        <include refid="selectTErpInventoryDetailVo"/>
+        where id = #{id}
+    </select>
+
+    <insert id="insertTErpInventoryDetail" parameterType="TErpInventoryDetail" useGeneratedKeys="true" keyProperty="id">
+        insert into t_erp_inventory_detail
+        <trim prefix="(" suffix=")" suffixOverrides=",">
+            <if test="ivnum != null">ivnum,</if>
+            <if test="ivpos != null">ivpos,</if>
+            <if test="lgnum != null">lgnum,</if>
+            <if test="lgtyp != null">lgtyp,</if>
+            <if test="ltypt != null">ltypt,</if>
+            <if test="lgpla != null">lgpla,</if>
+            <if test="werks != null">werks,</if>
+            <if test="lgort != null">lgort,</if>
+            <if test="matnr != null">matnr,</if>
+            <if test="maktx != null">maktx,</if>
+            <if test="charg != null">charg,</if>
+            <if test="bestq != null">bestq,</if>
+            <if test="gesme != null">gesme,</if>
+            <if test="meins != null">meins,</if>
+            <if test="sobkz != null">sobkz,</if>
+            <if test="pdatu != null">pdatu,</if>
+            <if test="uname != null">uname,</if>
+            <if test="psPosnr != null">ps_posnr,</if>
+            <if test="psPspt != null">ps_pspt,</if>
+            <if test="field1 != null">field1,</if>
+            <if test="field2 != null">field2,</if>
+            <if test="field3 != null">field3,</if>
+            <if test="field4 != null">field4,</if>
+            <if test="field5 != null">field5,</if>
+            <if test="createBy != null">create_by,</if>
+            <if test="createTime != null">create_time,</if>
+            <if test="updateBy != null">update_by,</if>
+            <if test="updateTime != null">update_time,</if>
+         </trim>
+        <trim prefix="values (" suffix=")" suffixOverrides=",">
+            <if test="ivnum != null">#{ivnum},</if>
+            <if test="ivpos != null">#{ivpos},</if>
+            <if test="lgnum != null">#{lgnum},</if>
+            <if test="lgtyp != null">#{lgtyp},</if>
+            <if test="ltypt != null">#{ltypt},</if>
+            <if test="lgpla != null">#{lgpla},</if>
+            <if test="werks != null">#{werks},</if>
+            <if test="lgort != null">#{lgort},</if>
+            <if test="matnr != null">#{matnr},</if>
+            <if test="maktx != null">#{maktx},</if>
+            <if test="charg != null">#{charg},</if>
+            <if test="bestq != null">#{bestq},</if>
+            <if test="gesme != null">#{gesme},</if>
+            <if test="meins != null">#{meins},</if>
+            <if test="sobkz != null">#{sobkz},</if>
+            <if test="pdatu != null">#{pdatu},</if>
+            <if test="uname != null">#{uname},</if>
+            <if test="psPosnr != null">#{psPosnr},</if>
+            <if test="psPspt != null">#{psPspt},</if>
+            <if test="field1 != null">#{field1},</if>
+            <if test="field2 != null">#{field2},</if>
+            <if test="field3 != null">#{field3},</if>
+            <if test="field4 != null">#{field4},</if>
+            <if test="field5 != null">#{field5},</if>
+            <if test="createBy != null">#{createBy},</if>
+            <if test="createTime != null">#{createTime},</if>
+            <if test="updateBy != null">#{updateBy},</if>
+            <if test="updateTime != null">#{updateTime},</if>
+         </trim>
+    </insert>
+
+    <update id="updateTErpInventoryDetail" parameterType="TErpInventoryDetail">
+        update t_erp_inventory_detail
+        <trim prefix="SET" suffixOverrides=",">
+            <if test="ivnum != null">ivnum = #{ivnum},</if>
+            <if test="ivpos != null">ivpos = #{ivpos},</if>
+            <if test="lgnum != null">lgnum = #{lgnum},</if>
+            <if test="lgtyp != null">lgtyp = #{lgtyp},</if>
+            <if test="ltypt != null">ltypt = #{ltypt},</if>
+            <if test="lgpla != null">lgpla = #{lgpla},</if>
+            <if test="werks != null">werks = #{werks},</if>
+            <if test="lgort != null">lgort = #{lgort},</if>
+            <if test="matnr != null">matnr = #{matnr},</if>
+            <if test="maktx != null">maktx = #{maktx},</if>
+            <if test="charg != null">charg = #{charg},</if>
+            <if test="bestq != null">bestq = #{bestq},</if>
+            <if test="gesme != null">gesme = #{gesme},</if>
+            <if test="meins != null">meins = #{meins},</if>
+            <if test="sobkz != null">sobkz = #{sobkz},</if>
+            <if test="pdatu != null">pdatu = #{pdatu},</if>
+            <if test="uname != null">uname = #{uname},</if>
+            <if test="psPosnr != null">ps_posnr = #{psPosnr},</if>
+            <if test="psPspt != null">ps_pspt = #{psPspt},</if>
+            <if test="field1 != null">field1 = #{field1},</if>
+            <if test="field2 != null">field2 = #{field2},</if>
+            <if test="field3 != null">field3 = #{field3},</if>
+            <if test="field4 != null">field4 = #{field4},</if>
+            <if test="field5 != null">field5 = #{field5},</if>
+            <if test="createBy != null">create_by = #{createBy},</if>
+            <if test="createTime != null">create_time = #{createTime},</if>
+            <if test="updateBy != null">update_by = #{updateBy},</if>
+            <if test="updateTime != null">update_time = #{updateTime},</if>
+        </trim>
+        where id = #{id}
+    </update>
+
+    <delete id="deleteTErpInventoryDetailById" parameterType="Long">
+        delete from t_erp_inventory_detail where id = #{id}
+    </delete>
+
+    <delete id="deleteTErpInventoryDetailByIds" parameterType="String">
+        delete from t_erp_inventory_detail where id in
+        <foreach item="id" collection="array" open="(" separator="," close=")">
+            #{id}
+        </foreach>
+    </delete>
+
+    <select id="selectErpInfo"  resultType="com.xsrw.wms.webservice.domain.vo.wms2erp.TErpInventoryDetailInfoVO">
+        select
+            a.task_id ,
+            a.predict_count,
+            a.actual_count,
+            `c`.pdatu, `c`.uname,
+            erp.ivnum, erp.ivpos, erp.lgnum, erp.lgtyp, erp.ltypt, erp.lgpla, erp.werks, erp.lgort, erp.matnr, erp.maktx, erp.charg, erp.bestq, erp.gesme, erp.meins, erp.sobkz, erp.pdatu, erp.ps_posnr, erp.ps_pspt, erp.field1
+        from t_check_delivery td
+        left join t_task b  on b.id = td.task_id
+        left join (select a.task_id ,a.material_id ,a.batch_number,sum(a.predict_count) as predict_count ,sum(a.actual_count) as actual_count
+            from t_task_detail a where a.del_flag = '0' and a.status = '4'
+            group by a.task_id,a.material_id ,a.batch_number) a on a.task_id = b.id and td.material_id = a.material_id and td.batch_code = a.batch_number
+        left join t_erp_inventory `c` on `c`.ivnum = td.plan_name
+        left join t_material tm on td.material_id = tm.id
+        inner join t_erp_inventory_detail erp on `c`.ivnum = erp.ivnum and td.batch_code = erp.charg and tm.code = erp.matnr and td.tbpos = erp.ivpos
+        where b.del_flag = '0' and td.del_flag = '0' and td.check_source = '2' and td.task_id = #{taskId}
+    </select>
+
+    <select id="selectErpInfoByCode"  resultType="com.xsrw.wms.webservice.domain.vo.wms2erp.TErpInventoryDetailInfoVO">
+        select
+            erp.gesme as predict_count,
+            erp.gesme as  actual_count,
+            `c`.pdatu, `c`.uname,
+            erp.ivnum, erp.ivnum, erp.ivnum, erp.ivpos, erp.lgnum, erp.lgtyp, erp.ltypt, erp.lgpla, erp.werks, erp.lgort, erp.matnr, erp.maktx, erp.charg, erp.bestq, erp.gesme, erp.meins, erp.sobkz, erp.pdatu, erp.ps_posnr, erp.ps_pspt, erp.field1
+        from t_erp_inventory_detail erp left join t_erp_inventory c on erp.ivnum = c.ivnum
+        where
+            c.ivnum = #{code}
+    </select>
+</mapper>

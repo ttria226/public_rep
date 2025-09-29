@@ -1,0 +1,45 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper
+        PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.xsrw.wms.base.mapper.TLabelTemplateMapper">
+
+    <sql id="selectTLabelTemplateVo">
+        select tlabeltemplate.id, tlabeltemplate.name, tlabeltemplate.label_type, tlabeltemplate.label_width, tlabeltemplate.label_height, tlabeltemplate.image_width, tlabeltemplate.image_height, tlabeltemplate.object_width, tlabeltemplate.object_height, tlabeltemplate.status, tlabeltemplate.remark, tlabeltemplate.create_by, tlabeltemplate.create_time, tlabeltemplate.update_by, tlabeltemplate.update_time, tlabeltemplate.dept_id, tlabeltemplate.dept_name, tlabeltemplate.del_flag
+        from t_label_template tlabeltemplate
+    </sql>
+
+    <select id="selectTLabelTemplateList" parameterType="com.xsrw.wms.base.domain.TLabelTemplate" resultType="com.xsrw.wms.base.domain.TLabelTemplate">
+        <include refid="selectTLabelTemplateVo"/>
+        <if test="params.dataScope != null  and params.dataScope != ''">
+            inner join sys_user u on u.user_name = tlabeltemplate.create_by and u.status = '0'
+            inner join sys_dept d on u.dept_id = d.dept_id and d.status = '0'
+        </if>
+        <where>
+            tlabeltemplate.del_flag = '0'
+            <if test="name != null  and name != ''">and tlabeltemplate.name like concat('%', #{name}, '%')</if>
+            <if test="labelType != null  and labelType != ''">and tlabeltemplate.label_type = #{labelType}</if>
+            <if test="labelWidth != null ">and tlabeltemplate.label_width = #{labelWidth}</if>
+            <if test="labelHeight != null ">and tlabeltemplate.label_height = #{labelHeight}</if>
+            <if test="imageWidth != null ">and tlabeltemplate.image_width = #{imageWidth}</if>
+            <if test="imageHeight != null ">and tlabeltemplate.image_height = #{imageHeight}</if>
+            <if test="objectWidth != null ">and tlabeltemplate.object_width = #{objectWidth}</if>
+            <if test="objectHeight != null ">and tlabeltemplate.object_height = #{objectHeight}</if>
+            <if test="status != null  and status != ''">and tlabeltemplate.status = #{status}</if>
+        </where>
+        <!-- 数据范围过滤 -->
+        ${params.dataScope}
+    </select>
+
+    <delete id="deleteTLabelTemplateById" parameterType="Long">
+         update t_label_template set del_flag = '1' where id = #{id}
+    </delete>
+
+    <delete id="deleteTLabelTemplateByIds" parameterType="String">
+        update t_label_template set del_flag = '1' where id in
+        <foreach item="id" collection="array" open="(" separator="," close=")">
+            #{id}
+        </foreach>
+    </delete>
+
+</mapper>

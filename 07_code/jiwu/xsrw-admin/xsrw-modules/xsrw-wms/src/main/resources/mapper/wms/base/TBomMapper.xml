@@ -1,0 +1,49 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper
+PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+"http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.xsrw.wms.base.mapper.TBomMapper">
+
+    <sql id="selectTBomVo">
+        select tbom.id, tbom.code, tbom.name, tbom.remark, tbom.create_by, tbom.create_time, tbom.update_by, tbom.update_time, tbom.dept_id, tbom.dept_name, tbom.del_flag
+        from t_bom tbom
+    </sql>
+
+    <select id="selectTBomList" parameterType="com.xsrw.wms.base.domain.TBom" resultType="com.xsrw.wms.base.domain.TBom">
+        select tbom.id, tbom.code, tbom.name, tbom.remark, tbom.create_by,
+        tbom.create_time, tbom.update_by, tbom.update_time, tbom.dept_id, tbom.dept_name, tbom.del_flag,
+        sum(tbd.count * tm.unit_price) as sumPrice,
+        sum(tbd.count * tm.rough_weight) as sumWeight
+        from t_bom tbom
+        left join t_bom_detail tbd on tbd.bom_id = tbom.id
+        left join t_material tm on tm.id = tbd.material_id
+        <if test="params.dataScope != null  and params.dataScope != ''">
+            inner join sys_user u on u.user_name = tbom.create_by and u.status = '0'
+            inner join sys_dept d on u.dept_id = d.dept_id and d.status = '0'
+        </if>
+        <where>
+            tbom.del_flag = '0'
+            <if test="code != null  and code != ''"> and tbom.code like concat('%', #{code}, '%')</if>
+            <if test="name != null  and name != ''"> and tbom.name like concat('%', #{name}, '%')</if>
+            <if test="createBy != null  and createBy != ''"> and tbom.create_by = #{createBy}</if>
+            <if test="deptId != null "> and tbom.dept_id = #{deptId}</if>
+            <if test="id != null">and tbom.id = #{id}</if>
+        </where>
+        <!-- 数据范围过滤 -->
+        ${params.dataScope}
+        group by tbom .id
+        order by tbom.create_time desc
+    </select>
+
+    <delete id="deleteTBomById" parameterType="Long">
+         update t_bom set del_flag = '1' where id = #{id}
+    </delete>
+
+    <delete id="deleteTBomByIds" parameterType="String">
+        update t_bom set del_flag = '1' where id in
+        <foreach item="id" collection="array" open="(" separator="," close=")">
+            #{id}
+        </foreach>
+    </delete>
+
+</mapper>

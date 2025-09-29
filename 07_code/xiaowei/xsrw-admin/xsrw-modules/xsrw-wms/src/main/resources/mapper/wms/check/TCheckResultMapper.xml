@@ -1,0 +1,134 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper
+PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+"http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.xsrw.wms.check.mapper.TCheckResultMapper">
+
+    <sql id="selectTCheckResultVo">
+        select tcheckresult.id, tcheckresult.task_detail_id, tcheckresult.status, tcheckresult.auditor, tcheckresult.check_difference_count, tcheckresult.remark, tcheckresult.create_by, tcheckresult.create_time, tcheckresult.update_by, tcheckresult.update_time, tcheckresult.dept_id, tcheckresult.dept_name, tcheckresult.del_flag
+        from t_check_result tcheckresult
+    </sql>
+
+<!--    <select id="selectTCheckResultList" parameterType="com.xsrw.wms.check.domain.TCheckResult" resultType="com.xsrw.wms.check.domain.TCheckResult">-->
+<!--        <include refid="selectTCheckResultVo"/>-->
+<!--        <if test="params.dataScope != null  and params.dataScope != ''">-->
+<!--            inner join sys_user u on u.user_name = tcheckresult.create_by and u.status = '0'-->
+<!--            inner join sys_dept d on u.dept_id = d.dept_id and d.status = '0'-->
+<!--        </if>-->
+<!--        <where>-->
+<!--            tcheckresult.del_flag = '0'-->
+<!--            <if test="taskDetailId != null "> and tcheckresult.task_detail_id = #{taskDetailId}</if>-->
+<!--            <if test="status != null  and status != ''"> and tcheckresult.status = #{status}</if>-->
+<!--            <if test="auditor != null  and auditor != ''"> and tcheckresult.auditor = #{auditor}</if>-->
+<!--            <if test="checkDifferenceCount != null "> and tcheckresult.check_difference_count = #{checkDifferenceCount}</if>-->
+<!--        </where>-->
+<!--        &lt;!&ndash; 数据范围过滤 &ndash;&gt;-->
+<!--        ${params.dataScope}-->
+<!--    </select>-->
+
+    <select id="selectCheckResultList" parameterType="com.xsrw.wms.check.domain.dto.CheckResultDTO" resultType="com.xsrw.wms.check.domain.vo.CheckResultVO">
+        select
+        sum(check_difference_count) as check_difference_count,
+        material_id,
+        dept_id,
+        dept_name
+        from (
+        (
+        select
+        sum(t5.actual_count - t5.rfid_head_count) as check_difference_count,
+        t5.material_id,
+        t2.dept_id,
+        t2.dept_name
+        from
+        t_check_result t1
+        inner join t_task_detail t2 on
+        t1.task_detail_id = t2.id
+        inner join t_check_history t5 on
+        t1.task_detail_id = t5.task_detail_id
+        and t5.del_flag = '0'
+        <if test="params.dataScope != null  and params.dataScope != ''">
+            inner join sys_user u on u.user_name = t1.create_by and u.status = '0'
+            inner join sys_dept d on u.dept_id = d.dept_id and d.status = '0'
+        </if>
+        where
+        t1.del_flag = '0'
+        <if test="deptId != null">and t2.dept_id = #{deptId}</if>
+        <if test="materialIds != null">and t5.material_id in
+            <foreach collection="materialIds" item="item" open="(" close=")" separator=",">
+                #{item}
+            </foreach>
+        </if>
+        <if test="materialCode != null and materialCode != ''">and t5.material_code like concat('%',#{materialCode},'%') </if>
+        <!-- 数据范围过滤 -->
+        ${params.dataScope}
+        group by t2.dept_id,t2.dept_name,t5.material_id
+        ) union all (
+        select
+        sum(t6.actual_count - t6.predict_count)  as check_difference_count,
+        t6.material_id,
+        t2.dept_id,
+        t2.dept_name
+        from
+        t_check_result t1
+        inner join t_task_detail t2 on
+        t1.task_detail_id = t2.id
+        inner join t_check_area_history t6 on
+        t1.task_detail_id = t6.task_detail_id
+        and t6.del_flag = '0'
+        and t6.status = '4'
+        <if test="params.dataScope != null  and params.dataScope != ''">
+            inner join sys_user u on u.user_name = t1.create_by and u.status = '0'
+            inner join sys_dept d on u.dept_id = d.dept_id and d.status = '0'
+        </if>
+        where
+        t1.del_flag = '0'
+        <if test="deptId != null">and t2.dept_id = #{deptId}</if>
+        <if test="materialIds != null">and t6.material_id in
+            <foreach collection="materialIds" item="item" open="(" close=")" separator=",">
+                #{item}
+            </foreach>
+        </if>
+        <if test="materialCode != null and materialCode != ''">and t6.batch_number like concat('%', #{materialCode}, '%')</if>
+        <!-- 数据范围过滤 -->
+        ${params.dataScope}
+        group by t2.dept_id,t2.dept_name,t6.material_id
+        )
+        ) t group by dept_id,dept_name,material_id
+    </select>
+    <select id="selectCheckResultList2" parameterType="com.xsrw.wms.check.domain.dto.CheckResultDTO" resultType="com.xsrw.wms.check.domain.vo.CheckResultVO">
+        SELECT t1.material_id,t4.`code` as material_code,t4.`name` as material_name,t5.`name` as unit_name,
+        t3.id as plan_id,t3.plan_name,sum(t2.predict_count) as predict_count,sum(t1.actual_count) as actual_count,sum(t1.check_difference_count) as check_difference_count
+        FROM t_check_result t1
+        LEFT JOIN t_task_detail t2 on t1.task_detail_id = t2.id
+        LEFT JOIN t_check_delivery t3 on t3.id = t2.plan_id
+        LEFT JOIN t_material t4 on t4.id = t1.material_id
+        LEFT JOIN t_unit t5 on t5.id = t4.unit_id
+        WHERE t1.del_flag=0 and t2.del_flag=0
+        <if test="materialCode != null and materialCode != ''">and t4.`code` like concat('%',#{materialCode},'%') </if>
+        <if test="materialName != null and materialName != ''">and t4.`name` like concat('%',#{materialName},'%') </if>
+        <if test="planName != null and planName != ''">and t3.plan_name like concat('%',#{planName},'%') </if>
+        GROUP BY t1.material_id,t4.`code`,t4.`name`,t5.`name`,t3.plan_name,t3.id
+        ORDER BY t3.id DESC
+    </select>
+
+    <delete id="deleteTCheckResultById" parameterType="Long">
+         update t_check_result set del_flag = '1' where id = #{id}
+    </delete>
+
+    <delete id="deleteTCheckResultByIds" parameterType="String">
+        update t_check_result set del_flag = '1' where id in
+        <foreach item="id" collection="array" open="(" separator="," close=")">
+            #{id}
+        </foreach>
+    </delete>
+    <select id="getCheckResultDetail"  parameterType="com.xsrw.wms.check.domain.dto.CheckResultDTO" resultType="com.xsrw.wms.check.domain.vo.CheckResultVO">
+        SELECT t3.`code` as tray_code,t4.`name` as location_name,t2.predict_count,t1.actual_count,t1.check_difference_count,t1.task_detail_id,t2.status
+        FROM t_check_result t1
+        LEFT JOIN t_task_detail t2 on t1.task_detail_id = t2.id
+        LEFT JOIN t_tray t3 on t3.id = t2.tray_id
+        LEFT JOIN t_location t4 on t4.id = t2.location_id
+        where t1.del_flag=0 and t2.del_flag=0
+        <if test="materialId != null and materialId != ''"> and t1.material_id=#{materialId} </if>
+        <if test="planId != null and planId != ''"> and t2.plan_id=#{planId} </if>
+    </select>
+</mapper>

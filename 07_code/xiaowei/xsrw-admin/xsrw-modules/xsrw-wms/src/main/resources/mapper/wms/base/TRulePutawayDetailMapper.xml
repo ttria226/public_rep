@@ -1,0 +1,59 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper
+PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+"http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.xsrw.wms.base.mapper.TRulePutawayDetailMapper">
+
+    <sql id="selectTRulePutawayDetailVo">
+        select a.id, a.rule_putaway_id, a.location_id, a.status, a.remark, a.create_by, a.create_time, a.update_by, a.update_time, a.dept_id, a.dept_name, a.del_flag
+        from t_rule_putaway_detail a
+    </sql>
+
+    <select id="selectTRulePutawayDetailList" parameterType="com.xsrw.wms.base.domain.TRulePutawayDetail" resultType="com.xsrw.wms.base.domain.TRulePutawayDetail">
+        <include refid="selectTRulePutawayDetailVo"/>
+        <if test="params.dataScope != null  and params.dataScope != ''">
+            inner join sys_user u on u.user_name = a.create_by and u.status = '0'
+            inner join sys_dept d on u.dept_id = d.dept_id and d.status = '0'
+        </if>
+        <where>
+            a.del_flag = '0'
+            <if test="rulePutawayId != null "> and a.rule_putaway_id = #{rulePutawayId}</if>
+            <if test="locationId != null "> and a.location_id = #{locationId}</if>
+            <if test="status != null  and status != ''"> and a.status = #{status}</if>
+        </where>
+        <!-- 数据范围过滤 -->
+        ${params.dataScope}
+    </select>
+
+    <delete id="deleteTRulePutawayDetailById" parameterType="Long">
+         update t_rule_putaway_detail set del_flag = '1' where id = #{id}
+    </delete>
+
+    <delete id="deleteTRulePutawayDetailByIds" parameterType="String">
+        update t_rule_putaway_detail set del_flag = '1' where id in
+        <foreach item="id" collection="array" open="(" separator="," close=")">
+            #{id}
+        </foreach>
+    </delete>
+
+    <delete id="deleteTRulePutawayDetailByPutawayIds" parameterType="String">
+        update t_rule_putaway_detail set del_flag = '1' where rule_putaway_id in
+        <foreach item="id" collection="array" open="(" separator="," close=")">
+            #{id}
+        </foreach>
+    </delete>
+
+    <select id="selectDetailListByPutawayIds" resultType="com.xsrw.wms.base.domain.TRulePutawayDetail">
+        select
+            a.rule_putaway_id ,
+            group_concat(b.name) as remark
+        from t_rule_putaway_detail a
+        left join t_location b on a.location_id = b.id
+        where a.del_flag = '0' and a.rule_putaway_id in
+        <foreach item="putawayId" collection="putawayIds" open="(" separator="," close=")">
+            #{putawayId}
+        </foreach>
+        group by a.rule_putaway_id
+    </select>
+
+</mapper>

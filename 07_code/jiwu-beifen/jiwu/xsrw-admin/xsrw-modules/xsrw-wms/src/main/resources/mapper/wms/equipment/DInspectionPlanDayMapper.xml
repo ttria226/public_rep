@@ -1,0 +1,83 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper
+PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+"http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.xsrw.wms.equipment.mapper.DInspectionPlanDayMapper">
+
+    <sql id="selectDInspectionPlanDayVo">
+        select dinspectionplanday.id, dinspectionplanday.plan_id, dinspectionplanday.day, dinspectionplanday.inspection_start_time, dinspectionplanday.inspection_end_time, dinspectionplanday.inspector, dinspectionplanday.inspector_true, dinspectionplanday.reason, dinspectionplanday.status, dinspectionplanday.sign_type, dinspectionplanday.remark, dinspectionplanday.create_by, dinspectionplanday.create_time, dinspectionplanday.update_by, dinspectionplanday.update_time, dinspectionplanday.dept_id, dinspectionplanday.dept_name, dinspectionplanday.del_flag, dinspectionplanday.inspector_name, dinspectionplanday.inspector_true_name
+        from d_inspection_plan_day dinspectionplanday
+    </sql>
+
+    <select id="selectDInspectionPlanDayList" parameterType="com.xsrw.wms.equipment.domain.DInspectionPlanDay" resultType="com.xsrw.wms.equipment.domain.DInspectionPlanDay">
+        <include refid="selectDInspectionPlanDayVo"/>
+        <if test="params.dataScope != null  and params.dataScope != ''">
+            inner join sys_user u on u.user_name = dinspectionplanday.create_by and u.status = '0'
+            inner join sys_dept d on u.dept_id = d.dept_id and d.status = '0'
+        </if>
+        <where>
+            dinspectionplanday.del_flag = '0' and dinspectionplanday.status !=4
+            <if test="planId != null "> and dinspectionplanday.plan_id = #{planId}</if>
+            <if test="day != null  and day != ''"> and dinspectionplanday.day = #{day}</if>
+            <if test="dayBegin != null  and dayEnd != null"> and dinspectionplanday.day >= #{dayBegin} and #{dayEnd}>= dinspectionplanday.day</if>
+            <if test="inspectionStartTime != null "> and dinspectionplanday.inspection_start_time = #{inspectionStartTime}</if>
+            <if test="inspectionEndTime != null "> and dinspectionplanday.inspection_end_time = #{inspectionEndTime}</if>
+<!--            <if test="inspector != null  and inspector != ''"> and dinspectionplanday.inspector_name = #{inspector}</if>-->
+<!--            <if test="inspectorTrue != null  and inspectorTrue != ''"> and dinspectionplanday.inspector_true_name = #{inspectorTrue}</if>-->
+            <if test="reason != null  and reason != ''"> and dinspectionplanday.reason = #{reason}</if>
+            <if test="status != null "> and dinspectionplanday.status = #{status}</if>
+            <if test="signType != null "> and dinspectionplanday.sign_type = #{signType}</if>
+            <if test="inspectorName != null  and inspectorName != ''"> and dinspectionplanday.inspector_name = #{inspectorName}</if>
+            <if test="inspectorTrueName != null  and inspectorTrueName != ''"> and dinspectionplanday.inspector_true_name = #{inspectorTrueName}</if>
+        </where>
+        <!-- 数据范围过滤 -->
+        ${params.dataScope}
+    </select>
+
+    <delete id="deleteDInspectionPlanDayById" parameterType="Long">
+         update d_inspection_plan_day set del_flag = '1' where id = #{id}
+    </delete>
+
+    <delete id="deleteDInspectionPlanDayByIds" parameterType="String">
+        update d_inspection_plan_day set del_flag = '1' where id in
+        <foreach item="id" collection="array" open="(" separator="," close=")">
+            #{id}
+        </foreach>
+    </delete>
+    <select id="appPlanList" resultType="com.xsrw.wms.equipment.domain.DInspectionPlanDay">
+        SELECT
+            a.id,
+            a.plan_id,
+            b.`name`,
+            b.inspection_line,
+            a.inspector,
+            a.inspector_name,
+            c.nick_name,
+            a.`day`,
+            a.inspection_start_time,
+            a.inspection_end_time,a.`status`
+        FROM
+            d_inspection_plan_day a
+                LEFT JOIN d_inspection_plan b ON a.plan_id = b.id
+                LEFT JOIN sys_user c on c.user_id = a.inspector
+        WHERE
+            1 =1 and a.del_flag = 0 and a.`status`!= 4
+        <if test="ew.emptyOfWhere == false">
+            and ${ew.SqlSegment}
+        </if>
+    </select>
+    <select id="getInfoApp" resultType="com.xsrw.wms.equipment.domain.WmsInspectionPlanDetail">
+        SELECT
+            b.id,
+            a.plan_id,
+            b.`name`,
+            b.equ_no,
+            b.serial_no,
+            b.function_location
+        FROM
+            d_inspection_plan_detail a
+            LEFT JOIN d_equipment b ON a.equipment_id = b.id
+        WHERE
+            a.plan_id = #{planid}
+    </select>
+</mapper>

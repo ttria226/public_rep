@@ -1,0 +1,38 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper
+PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+"http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.xsrw.wms.base.mapper.TGoodsAllocationMapper">
+
+    <sql id="selectTGoodsAllocationVo">
+        select tgoodsallocation.id, tgoodsallocation.code, tgoodsallocation.name, tgoodsallocation.remark, tgoodsallocation.create_by, tgoodsallocation.create_time, tgoodsallocation.update_by, tgoodsallocation.update_time, tgoodsallocation.dept_id, tgoodsallocation.dept_name, tgoodsallocation.del_flag
+        from t_goods_allocation tgoodsallocation
+    </sql>
+
+    <select id="selectTGoodsAllocationList" parameterType="com.xsrw.wms.base.domain.TGoodsAllocation" resultType="com.xsrw.wms.base.domain.TGoodsAllocation">
+        <include refid="selectTGoodsAllocationVo"/>
+        <if test="params.dataScope != null  and params.dataScope != ''">
+            inner join sys_user u on u.user_name = tgoodsallocation.create_by and u.status = '0'
+            inner join sys_dept d on u.dept_id = d.dept_id and d.status = '0'
+        </if>
+        <where>
+            tgoodsallocation.del_flag = '0'
+            <if test="code != null  and code != ''"> and tgoodsallocation.code like concat('%', #{code}, '%')</if>
+            <if test="name != null  and name != ''"> and tgoodsallocation.name like concat('%', #{name}, '%')</if>
+        </where>
+        <!-- 数据范围过滤 -->
+        ${params.dataScope}
+    </select>
+
+    <delete id="deleteTGoodsAllocationById" parameterType="Long">
+         update t_goods_allocation set del_flag = '1' where id = #{id}
+    </delete>
+
+    <delete id="deleteTGoodsAllocationByIds" parameterType="String">
+        update t_goods_allocation set del_flag = '1' where id in
+        <foreach item="id" collection="array" open="(" separator="," close=")">
+            #{id}
+        </foreach>
+    </delete>
+
+</mapper>

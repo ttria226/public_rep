@@ -1,0 +1,136 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper
+PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+"http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.xsrw.wms.stock.mapper.TStockMainMapper">
+
+    <sql id="selectTStockMainVo">
+        select tstockmain.id, tstockmain.material_id, tstockmain.library_count, tstockmain.available_count, tstockmain.create_by, tstockmain.create_time, tstockmain.update_by, tstockmain.update_time, tstockmain.remark, tstockmain.dept_id, tstockmain.dept_name, tstockmain.del_flag
+        from t_stock_main tstockmain
+    </sql>
+
+    <select id="selectTStockMainList" parameterType="com.xsrw.wms.stock.domain.TStockMain" resultType="com.xsrw.wms.stock.domain.TStockMain">
+        <include refid="selectTStockMainVo"/>
+        <if test="params.dataScope != null  and params.dataScope != ''">
+            inner join sys_user u on u.user_name = tstockmain.create_by and u.status = '0'
+            inner join sys_dept d on u.dept_id = d.dept_id and d.status = '0'
+        </if>
+        <where>
+            tstockmain.del_flag = '0'
+            <if test="materialId != null "> and tstockmain.material_id = #{materialId}</if>
+            <if test="libraryCount != null "> and tstockmain.library_count = #{libraryCount}</if>
+            <if test="availableCount != null "> and tstockmain.available_count = #{availableCount}</if>
+        </where>
+        <!-- 数据范围过滤 -->
+        ${params.dataScope}
+    </select>
+
+    <select id="selectTStockMainInfoList" parameterType="com.xsrw.wms.stock.domain.TStockMain" resultType="com.xsrw.wms.stock.domain.vo.StockMainVo">
+        select
+            a.id, a.material_id, a.library_count, a.available_count, a.create_by, a.create_time, a.remark, a.dept_id, a.dept_name,
+            tm.code as materialCode, tm.name as materialName,
+            tm.specifications,
+            tu.name as unitName,
+            tc.name as categoryName,
+            tcu.name as contactsUnitName,
+            tuc.max_unit_name as packUnitName
+        from
+        t_stock_main a
+        left join t_material tm on a.material_id = tm.id
+        left join t_unit tu on tm.unit_id = tu.id
+        left join t_category tc on tm.category_id = tc.id
+        left join t_contacts_unit tcu on tm.contacts_unit_id = tcu.id
+        left join t_unit_config tuc on tuc.material_id = tm.id
+        <if test="params.dataScope != null  and params.dataScope != ''">
+            inner join sys_user u on u.user_name = tstockmain.create_by and u.status = '0'
+            inner join sys_dept d on u.dept_id = d.dept_id and d.status = '0'
+        </if>
+        <where>
+            a.del_flag = '0'
+            <if test="materialId != null "> and a.material_id = #{materialId}</if>
+            <if test="libraryCount != null "> and a.library_count = #{libraryCount}</if>
+            <if test="availableCount != null "> and a.available_count = #{availableCount}</if>
+            <if test="contactsUnitId != null "> and tm.contacts_unit_id = #{contactsUnitId}</if>
+            <if test="materialName != null  and materialName != ''">and tm.name like concat('%',#{materialName},'%')</if>
+            <if test="materialCode != null  and materialCode != ''">and tm.code like concat('%',#{materialCode},'%')</if>
+        </where>
+        <!-- 数据范围过滤 -->
+        ${params.dataScope}
+    </select>
+
+    <select id="selectStockMainListTwo" resultType="com.xsrw.wms.stock.domain.vo.StockMainVo">
+        <include refid="selectTStockMainVo"/>
+        <where>
+            del_flag = '0' and library_count > 0
+            <if test="stock.materialId != null "> and material_id = #{stock.materialId}</if>
+            <if test="stock.libraryCount != null "> and library_count = #{stock.libraryCount}</if>
+            <if test="stock.availableCount != null "> and available_count = #{stock.availableCount}</if>
+            <if test="materialId != null and materialId.size > 0">
+                and material_id in
+                <foreach collection="materialId" item="item" open="(" close=")" separator=",">
+                    #{item}
+                </foreach>
+            </if>
+        </where>
+    </select>
+
+    <delete id="deleteTStockMainById" parameterType="Long">
+         update t_stock_main set del_flag = '1' where id = #{id}
+    </delete>
+
+    <delete id="deleteTStockMainByIds" parameterType="String">
+        update t_stock_main set del_flag = '1' where id in
+        <foreach item="id" collection="array" open="(" separator="," close=")">
+            #{id}
+        </foreach>
+    </delete>
+
+    <update id="updateCountByParam" parameterType="String">
+        update t_stock_main set library_count = #{stockMain.libraryCount}
+        <if test="stockMain.availableCount != null">
+            ,available_count = #{stockMain.availableCount}
+        </if>
+        where dept_id = #{stockMain.deptId}
+        and material_id = #{stockMain.materialId}
+    </update>
+
+
+    <select id="getStockByMaterialIds" resultType="com.xsrw.wms.stock.domain.TStockMain">
+        <include refid="selectTStockMainVo"/>
+        <where>
+            del_flag = '0' and library_count > 0
+            <if test="materialIds != null and materialIds.size()!=0">
+                and material_id in
+                <foreach item="materialId" collection="materialIds" open="(" separator="," close=")">
+                    #{materialId}
+                </foreach>
+            </if>
+        </where>
+    </select>
+
+    <select id="getReplenishmentStock" resultType="com.xsrw.wms.report.domain.vo.ReplenishmentReportVO">
+        select
+            a.id, a.material_id , a.library_count , a.available_count ,
+            m.code as materialCode, m.name as materialName, m.specifications , m.stock_min , m.stock_max , m.description ,
+            tu.name as unitName,
+            b.name as categoryName
+        from t_stock_main a
+        left join t_material m on a.material_id = m.id
+        left join t_unit tu on m.unit_id = tu.id
+        left join t_category b on m.category_id = b.id
+        where a.del_flag = '0' and a.library_count &lt; m.stock_min
+        <if test="materialCode != null  and materialCode != ''">and m.code like concat('%',#{materialCode},'%')</if>
+        <if test="materialName != null  and materialName != ''">and m.name like concat('%',#{materialName},'%')</if>
+    </select>
+
+    <select id="selectStockList" resultType="com.xsrw.wms.kanban.domain.vo.StockListVO">
+        select
+            m.name as materialName,
+            sum(a.library_count) libraryCount
+        from t_stock_main a
+        left join t_material m on a.material_id = m.id
+        where m.del_flag='0' and a.del_flag = '0'
+        group by a.material_id
+        order by libraryCount desc
+    </select>
+</mapper>

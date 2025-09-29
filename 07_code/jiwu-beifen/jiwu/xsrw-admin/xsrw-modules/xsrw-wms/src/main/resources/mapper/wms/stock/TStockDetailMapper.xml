@@ -1,0 +1,250 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper
+PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+"http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.xsrw.wms.stock.mapper.TStockDetailMapper">
+
+    <sql id="selectTStockDetailVo">
+        select tstockdetail.id, tstockdetail.location_id, tstockdetail.material_id, tstockdetail.before_count, tstockdetail.current_count, tstockdetail.type, tstockdetail.origin_id, tstockdetail.origin_code, tstockdetail.status, tstockdetail.create_by, tstockdetail.create_time, tstockdetail.update_by, tstockdetail.update_time, tstockdetail.remark, tstockdetail.dept_id, tstockdetail.dept_name, tstockdetail.del_flag
+        from t_stock_detail tstockdetail
+    </sql>
+
+    <select id="selectTStockDetailList" parameterType="com.xsrw.wms.stock.domain.TStockDetail" resultType="com.xsrw.wms.stock.domain.TStockDetail">
+        <include refid="selectTStockDetailVo"/>
+        <if test="params.dataScope != null  and params.dataScope != ''">
+            inner join sys_user u on u.user_name = tstockdetail.create_by and u.status = '0'
+            inner join sys_dept d on u.dept_id = d.dept_id and d.status = '0'
+        </if>
+        <where>
+            tstockdetail.del_flag = '0'
+            <if test="locationId != null "> and tstockdetail.location_id = #{locationId}</if>
+            <if test="materialId != null "> and tstockdetail.material_id = #{materialId}</if>
+            <if test="beforeCount != null "> and tstockdetail.before_count = #{beforeCount}</if>
+            <if test="currentCount != null "> and tstockdetail.current_count = #{currentCount}</if>
+            <if test="type != null  and type != ''"> and tstockdetail.type = #{type}</if>
+            <if test="originId != null "> and tstockdetail.origin_id = #{originId}</if>
+            <if test="originCode != null  and originCode != ''"> and tstockdetail.origin_code like concat('%', #{originCode}, '%')</if>
+            <if test="status != null  and status != ''"> and tstockdetail.status = #{status}</if>
+        </where>
+        <!-- 数据范围过滤 -->
+        ${params.dataScope}
+    </select>
+
+    <delete id="deleteTStockDetailById" parameterType="Long">
+         update t_stock_detail set del_flag = '1' where id = #{id}
+    </delete>
+
+    <delete id="deleteTStockDetailByIds" parameterType="String">
+        update t_stock_detail set del_flag = '1' where id in
+        <foreach item="id" collection="array" open="(" separator="," close=")">
+            #{id}
+        </foreach>
+    </delete>
+
+    <select id="selectTStockDetailCountParam" resultType="long" parameterType="com.xsrw.wms.stock.domain.TStockDetail">
+        select current_count
+        from t_stock_detail
+        where del_flag = '0'
+        <if test="locationId != null "> and location_id = #{locationId}</if>
+        <if test="materialId != null "> and material_id = #{materialId}</if>
+        <if test="batchCode != null "> and batch_code = #{batchCode}</if>
+        order by id desc
+        limit 1
+    </select>
+    <select id="selectTStockDetailListByLedger" parameterType="com.xsrw.wms.stock.domain.vo.StockDetailLedgerVo" resultType="com.xsrw.wms.stock.domain.TStockDetail">
+        select tstockdetail.id, tstockdetail.location_id, tstockdetail.material_id, tstockdetail.before_count, tstockdetail.current_count,
+               tstockdetail.type, tstockdetail.origin_id, tstockdetail.origin_code, tstockdetail.status, tstockdetail.create_by,tstockdetail.batch_code,
+               tstockdetail.create_time, tstockdetail.update_by, tstockdetail.update_time, tstockdetail.remark, tstockdetail.dept_id,
+               tstockdetail.dept_name, tstockdetail.del_flag,tm.name as materialName,tu.name as unitName,tm.specifications,tm.code as materialCode
+        from t_stock_detail tstockdetail
+        <if test="params.dataScope != null  and params.dataScope != ''">
+            inner join sys_user u on u.user_name = tstockdetail.create_by and u.status = '0'
+            inner join sys_dept d on u.dept_id = d.dept_id and d.status = '0'
+        </if>
+        LEFT JOIN t_material tm on tm.id=tstockdetail.material_id
+        LEFT JOIN t_unit tu on tu.id=tm.unit_id
+        <where>
+            tstockdetail.del_flag = '0'
+            <if test="materialIds != null and materialIds.size()>0 ">
+                and tstockdetail.material_id in
+                <foreach item="materialId" collection="materialIds" open="(" separator="," close=")">
+                    #{materialId}
+                </foreach>
+            </if>
+            <if test="batchCode != null  and batchCode != ''"> and tstockdetail.batch_code like concat('%', #{batchCode}, '%')</if>
+            <if test="materialCode != null  and materialCode != ''"> and tm.code like concat('%', #{materialCode}, '%')</if>
+            <if test="materialName != null  and materialName != ''"> and tm.name like concat('%', #{materialName}, '%')</if>
+        </where>
+         <!-- 数据范围过滤 -->
+        ${params.dataScope}
+        order by tstockdetail.create_time desc
+    </select>
+
+    <select id="selectListByParam" resultType="com.xsrw.wms.report.domain.vo.InOutStatementVO">
+        select
+            sd.batch_code batchCode,
+            sd.type,
+            ABS(sd.current_count-sd.before_count) count,
+            sd.create_time createTime,
+            m.code materialCode,
+            m.name materialName,
+            u.name unitName,
+            cu.name contactsUnitName
+        from t_stock_detail sd
+        LEFT JOIN t_material m on m.id=sd.material_id
+        LEFT JOIN t_unit u on u.id=m.unit_id
+        LEFT JOIN t_contacts_unit cu on cu.id=m.contacts_unit_id
+        where
+        sd.del_flag = '0'
+        <choose>
+            <when test="type!=null and type!=''">
+                and sd.type=#{type}
+            </when>
+            <otherwise>and sd.type in('1','2')</otherwise>
+        </choose>
+        <if test="materialCode != null  and materialCode != ''"> and m.code like concat('%', #{materialCode}, '%')</if>
+        <if test="materialName != null  and materialName != ''"> and m.name like concat('%', #{materialName}, '%')</if>
+        <if test="contactsUnitId != null"> and cu.id=#{contactsUnitId}</if>
+        <if test="beginDate!=null and endDate!=null">
+            and sd.create_time between #{beginDate} and #{endDate}
+        </if>
+        order by sd.create_time desc
+    </select>
+
+    <select id="selectEfficiencyStatistics" resultType="com.xsrw.wms.report.domain.vo.EfficiencyStatisticsVO">
+        select
+            m.code materialCode,
+            m.name materialName,
+            un.name unitName,
+            sd.batch_code batchCode,
+            sd.type,
+            ABS(sd.current_count-sd.before_count) count,
+            sd.create_time createTime,
+            round(ABS(timestampdiff(second,sd.create_time,case sd.type when 1 then ad.create_time else od.create_time end))/3600,1) timeConsume
+        from t_stock_detail sd
+        <if test="params.dataScope != null  and params.dataScope != ''">
+            inner join sys_user u on u.user_name = tstockdetail.create_by and u.status = '0'
+            inner join sys_dept d on u.dept_id = d.dept_id and d.status = '0'
+        </if>
+        LEFT JOIN t_material m on m.id=sd.material_id
+        LEFT JOIN t_unit un on un.id=m.unit_id
+        LEFT JOIN t_contacts_unit cu on cu.id=m.contacts_unit_id
+        LEFT JOIN t_advance_delivery ad on ad.code=sd.origin_code
+        LEFT JOIN t_out_delivery od on od.code=sd.origin_code
+        where
+            sd.del_flag = '0' and m.del_flag = '0'
+        and sd.type in('1','2')
+        and sd.origin_code is not null
+        <if test="materialCode != null  and materialCode != ''"> and m.code like concat('%', #{materialCode}, '%')</if>
+        <if test="materialName != null  and materialName != ''"> and m.name like concat('%', #{materialName}, '%')</if>
+        <if test="batchCode != null  and batchCode != ''"> and sd.batch_code like concat('%', #{batchCode}, '%')</if>
+        <!-- 数据范围过滤 -->
+        ${params.dataScope}
+        order by sd.create_time desc
+    </select>
+
+    <select id="selectWorkStatistics" resultType="com.xsrw.wms.report.domain.vo.WorkStatisticsListsVO">
+        select
+        m.code materialCode,
+        m.name materialName,
+        un.name unitName,
+        sd.batch_code batchCode,
+        sd.type,
+        ABS(sd.current_count-sd.before_count) count,
+        sd.create_time createTime,
+        round(ABS(timestampdiff(second,sd.create_time,case sd.type when 1 then ad.create_time else od.create_time end))/3600,1) timeConsume
+        from t_stock_detail sd
+        <if test="params.dataScope != null  and params.dataScope != ''">
+            inner join sys_user u on u.user_name = tstockdetail.create_by and u.status = '0'
+            inner join sys_dept d on u.dept_id = d.dept_id and d.status = '0'
+        </if>
+        LEFT JOIN t_material m on m.id=sd.material_id
+        LEFT JOIN t_unit un on un.id=m.unit_id
+        LEFT JOIN t_contacts_unit cu on cu.id=m.contacts_unit_id
+        LEFT JOIN t_advance_delivery ad on ad.code=sd.origin_code
+        LEFT JOIN t_out_delivery od on od.code=sd.origin_code
+        where
+        sd.del_flag = '0'
+        and sd.type in('1','2')
+        and sd.origin_code is not null
+        <if test="materialCode != null  and materialCode != ''"> and m.code like concat('%', #{materialCode}, '%')</if>
+        <if test="materialName != null  and materialName != ''"> and m.name like concat('%', #{materialName}, '%')</if>
+        <if test="batchCode != null  and batchCode != ''"> and sd.batch_code like concat('%', #{batchCode}, '%')</if>
+        <!-- 数据范围过滤 -->
+        ${params.dataScope}
+        order by sd.create_time desc
+    </select>
+
+    <select id="selectListByKey" resultType="com.xsrw.wms.stock.domain.vo.StockDailySettlementVO">
+        select
+        date_format(s.create_time,'%Y-%m-%d %H:%i:%s') createTime,
+        m.code materialCode,
+        m.name materialName,
+        m.specifications,
+        u.name unitName,
+        sum(current_count-before_count) changeCount
+        from t_stock_detail s
+        left join t_material m on m.id=s.material_id
+        left join t_unit u on u.id=m.unit_id
+        where s.del_flag = '0' and m.del_flag = '0'
+        <if test="materialCode != null  and materialCode != ''">and m.code like concat('%',#{materialCode},'%')</if>
+        <if test="materialName != null  and materialName != ''">and m.name like concat('%',#{materialName},'%')</if>
+        <if test="beginDate!=null">
+            and s.create_time>=#{beginDate}
+        </if>
+        <if test="endDate!=null">
+            and #{endDate}>=s.create_time
+        </if>
+        group by m.id,createTime
+        order by createTime desc,m.id desc
+    </select>
+
+    <select id="selectStockDetailList" parameterType="com.xsrw.wms.stock.domain.vo.StockDealVO"
+            resultType="com.xsrw.wms.stock.domain.vo.StockDealVO">
+        select
+        sd.batch_code batchCode,
+        sd.type,
+        sd.current_count-sd.before_count changeCount,
+        sd.before_count beforeCount,
+        sd.current_count currentCount,
+        sd.create_time createTime,
+        m.code materialCode,
+        m.name materialName,
+        m.specifications,
+        u.name unitName,
+        tl.name as locationName
+        from t_stock_detail sd
+        LEFT JOIN t_material m on m.id=sd.material_id
+        LEFT JOIN t_unit u on u.id=m.unit_id
+        LEFT JOIN t_location tl on sd.location_id = tl.id
+        where
+        sd.del_flag = '0' and m.del_flag='0'
+        <if test="materialCode != null  and materialCode != ''"> and m.code like concat('%', #{materialCode}, '%')</if>
+        <if test="materialName != null  and materialName != ''"> and m.name like concat('%', #{materialName}, '%')</if>
+        <if test="batchCode != null  and batchCode != ''"> and sd.batch_code like concat('%', #{batchCode}, '%')</if>
+        <if test="locationName != null  and locationName != ''"> and tl.name like concat('%', #{locationName}, '%')</if>
+        order by sd.id desc
+    </select>
+
+    <select id="inMonthNum" resultType="java.util.Map">
+        select
+            ifnull(sum((t1.current_count - t1.before_count) * t2.unit_price), 0) as count,
+            date_format(t1.create_time, '%Y-%m') as month
+        from t_stock_detail t1
+        left join t_material t2 on t1.material_id = t2.id
+        where t1.del_flag = '0'
+          and t1.type = '1'
+        group by date_format(t1.create_time, '%Y-%m')
+    </select>
+
+    <select id="outMonthNum" resultType="java.util.Map">
+        select
+            ifnull(sum((t1.before_count - t1.current_count) * t2.unit_price), 0) as count,
+            date_format(t1.create_time, '%Y-%m') as month
+        from t_stock_detail t1
+                 left join t_material t2 on t1.material_id = t2.id
+        where t1.del_flag = '0'
+          and t1.type = '2'
+        group by date_format(t1.create_time, '%Y-%m')
+    </select>
+</mapper>

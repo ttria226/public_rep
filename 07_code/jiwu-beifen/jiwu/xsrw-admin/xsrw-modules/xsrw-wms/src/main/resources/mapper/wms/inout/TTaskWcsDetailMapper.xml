@@ -1,0 +1,128 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper
+        PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.xsrw.wms.inout.mapper.TTaskWcsDetailMapper">
+
+    <sql id="selectTTaskWcsDetailVo">
+        select ttaskwcsdetail.id, ttaskwcsdetail.task_id, ttaskwcsdetail.type, ttaskwcsdetail.origin_id
+        from t_task_wcs_detail ttaskwcsdetail
+    </sql>
+
+    <select id="selectTTaskWcsDetailList" parameterType="com.xsrw.wms.inout.domain.TTaskWcsDetail"
+            resultType="com.xsrw.wms.inout.domain.TTaskWcsDetail">
+        <include refid="selectTTaskWcsDetailVo"/>
+        <if test="params.dataScope != null  and params.dataScope != ''">
+            inner join sys_user u on u.user_name = ttaskwcsdetail.create_by and u.status = '0'
+            inner join sys_dept d on u.dept_id = d.dept_id and d.status = '0'
+        </if>
+        <where>
+            ttaskwcsdetail.del_flag = '0'
+            <if test="taskId != null ">and ttaskwcsdetail.task_id = #{taskId}</if>
+            <if test="type != null ">and ttaskwcsdetail.type = #{type}</if>
+            <if test="originId != null ">and ttaskwcsdetail.origin_id = #{originId}</if>
+        </where>
+        <!-- 数据范围过滤 -->
+        ${params.dataScope}
+    </select>
+
+    <delete id="deleteTTaskWcsDetailById" parameterType="Long">
+         update t_task_wcs_detail set del_flag = '1' where id = #{id}
+    </delete>
+
+    <delete id="deleteTTaskWcsDetailByTaskId" parameterType="Long">
+         update t_task_wcs_detail set del_flag = '1' where task_id = #{taskId}
+    </delete>
+
+    <select id="selectStatusWcsListByTrayId" resultType="com.xsrw.wms.inout.domain.vo.TTaskWcsDetailVO">
+        select
+        a.id ,
+        a.task_status ,
+        b.task_id,
+        b.`type` as taskType,
+        b.origin_id
+        from t_task_wcs a
+        left join t_task_wcs_detail b on a.id = b.task_id
+        where a.tray_id = #{trayId} and b.`type` = #{taskType} and a.task_status = '1'
+    </select>
+
+    <delete id="deleteTTaskWcsDetailByIds" parameterType="String">
+        update t_task_wcs_detail set del_flag = '1' where id in
+        <foreach item="id" collection="array" open="(" separator="," close=")">
+            #{id}
+        </foreach>
+    </delete>
+
+    <select id="getListByTaskId" resultType="com.xsrw.wms.inout.domain.vo.TTaskWcsDetailVO">
+        select
+            a.id ,a.origin_id,
+            b.material_id ,
+            <if test="taskType != null and taskType == 1">
+                b.batch_code ,b.advance_registration_id, b.location_id,
+            </if>
+            <if test="taskType != null and taskType == 2">
+                tl.name as locationName ,
+                ts.batch_code ,
+                tr.name as reservoirName,
+            </if>
+            <if test="taskType != null and taskType == 5">
+                b.predict_count ,b.batch_number as batchCode,b.location_id,b.org_location_id,b.tray_id,
+            </if>
+            b.actual_count,
+            m.code as materialCode,
+            m.name as materialName,
+            tu.name as unitName,
+            tt.code as trayCode
+        from t_task_wcs_detail a
+        <if test="taskType != null and taskType == 1">
+            left join t_task_in b on a.origin_id = b.id and a.`type` = '1'
+        </if>
+        <if test="taskType != null and taskType == 2">
+            left join t_task_out b on a.origin_id = b.id and a.`type` = '2'
+            left join t_location tl on b.location_id = tl.id
+            left join t_reservoir tr on tl.reservoir_id = tr.id
+            left join t_stock ts on b.stock_id = ts.id
+        </if>
+        <if test="taskType != null and taskType == 5">
+            left join t_task_detail b on a.origin_id = b.id and a.`type` = '5'
+        </if>
+        left join t_material m on b.material_id = m.id
+        left join t_unit tu on  m.unit_id = tu.id
+        left join t_tray tt on b.tray_id = tt.id
+        where a.task_id = #{taskId}
+    </select>
+    <select id="getShiftDetail" resultType="com.xsrw.wms.inout.domain.vo.TTaskWcsDetailVO">
+        SELECT ttwd.id, tm.`name` as materialName,tm.`code` as materialCode,tu.`name` as unitName,ttd.predict_count,ttd.batch_number as batchCode
+        ,ttd.material_id,ttd.task_id,ttd.actual_count
+        FROM t_task_wcs_detail ttwd
+                 JOIN t_task_detail ttd on ttd.id=ttwd.origin_id AND ttd.del_flag='0'
+                 JOIN t_material tm on tm.id=ttd.material_id and tm.del_flag='0'
+                 JOIN t_unit tu on tu.id=tm.unit_id
+        WHERE ttwd.type='5' AND ttwd.del_flag='0'
+        <if test="taskwcsId!=null and taskwcsId!=0"> AND ttwd.task_id=#{taskwcsId}</if>
+        ORDER BY ttwd.create_time DESC
+    </select>
+
+    <select id="getDeliveryIdsByTaskId" resultType="com.xsrw.wms.inout.domain.TAdvanceDelivery">
+        select d.id, d.status, d.complete_state
+        from t_task_wcs_detail a
+        left join t_task_in b on a.origin_id = b.id
+        left join t_advance_delivery_detail c on b.advance_registration_id = c.id
+        left join t_advance_delivery d on c.advance_delivery_id = d.id
+        where a.task_id = #{taskId} and a.del_flag = '0' and b.del_flag = '0' and c.del_flag = '0' and d.del_flag = '0'
+    </select>
+
+    <select id="getDeliveryDetailByTray" resultType="com.xsrw.wms.inout.domain.vo.TTaskWcsDetailVO">
+        select
+            a.id, a.tray_id,
+            c.advance_registration_id , c.material_id, c.actual_count, c.batch_code,
+            m.name as materialName
+        from t_task_wcs a
+        left join t_task_wcs_detail b on a.id = b.task_id
+        left join t_task_in c on b.origin_id = c.id
+        left join t_material m on c.material_id = m.id
+        where a.del_flag = '0' and a.task_type = '1' and a.task_status = '1' and b.del_flag = '0'
+         and a.tray_id = #{trayId}
+    </select>
+
+</mapper>

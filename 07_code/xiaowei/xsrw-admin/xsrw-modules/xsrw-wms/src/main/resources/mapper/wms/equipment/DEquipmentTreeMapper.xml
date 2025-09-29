@@ -1,0 +1,39 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper
+PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+"http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.xsrw.wms.equipment.mapper.DEquipmentTreeMapper">
+
+    <sql id="selectDEquipmentTreeVo">
+        select dequipmenttree.id, dequipmenttree.name, dequipmenttree.pid, dequipmenttree.type, dequipmenttree.remark, dequipmenttree.create_by, dequipmenttree.create_time, dequipmenttree.update_by, dequipmenttree.update_time, dequipmenttree.dept_id, dequipmenttree.dept_name, dequipmenttree.del_flag
+        from d_equipment_tree dequipmenttree
+    </sql>
+
+    <select id="selectDEquipmentTreeList" parameterType="com.xsrw.wms.equipment.domain.DEquipmentTree" resultType="com.xsrw.wms.equipment.domain.DEquipmentTree">
+        <include refid="selectDEquipmentTreeVo"/>
+        <if test="params.dataScope != null  and params.dataScope != ''">
+            inner join sys_user u on u.user_name = dequipmenttree.create_by and u.status = '0'
+            inner join sys_dept d on u.dept_id = d.dept_id and d.status = '0'
+        </if>
+        <where>
+            dequipmenttree.del_flag = '0'
+            <if test="name != null  and name != ''"> and dequipmenttree.name like concat('%', #{name}, '%')</if>
+            <if test="pid != null "> and dequipmenttree.pid = #{pid}</if>
+            <if test="type != null "> and dequipmenttree.type = #{type}</if>
+        </where>
+        <!-- 数据范围过滤 -->
+        ${params.dataScope}
+    </select>
+
+    <delete id="deleteDEquipmentTreeById" parameterType="Long">
+         update d_equipment_tree set del_flag = '1' where id = #{id}
+    </delete>
+
+    <delete id="deleteDEquipmentTreeByIds" parameterType="String">
+        update d_equipment_tree set del_flag = '1' where id in
+        <foreach item="id" collection="array" open="(" separator="," close=")">
+            #{id}
+        </foreach>
+    </delete>
+
+</mapper>

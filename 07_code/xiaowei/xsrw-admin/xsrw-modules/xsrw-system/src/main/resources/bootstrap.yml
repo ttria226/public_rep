@@ -1,0 +1,32 @@
+# Tomcat
+server:
+  port: 9291
+
+# Spring
+spring: 
+  application:
+    # 应用名称
+    name: xsrw-system
+  profiles:
+    # 环境配置
+    active: dev
+  cloud:
+    nacos:
+      discovery:
+        # 服务注册地址
+        server-addr: 127.0.0.1:8848
+        namespace: 45a27989-5078-4dd3-8955-2427acb463fd
+      #        group: xwk  #分组
+      #        namespace: xwk
+      config:
+        namespace: 45a27989-5078-4dd3-8955-2427acb463fd
+        # 配置中心地址
+        server-addr: 127.0.0.1:8848
+        #        namespace: xwk
+        #        group: xwk
+        # 配置文件格式
+        file-extension: yml
+
+        # 共享配置
+        shared-configs:
+          - application-${spring.profiles.active}.${spring.cloud.nacos.config.file-extension}

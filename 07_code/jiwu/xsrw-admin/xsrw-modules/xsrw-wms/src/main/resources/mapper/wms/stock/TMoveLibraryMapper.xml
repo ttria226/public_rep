@@ -1,0 +1,82 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper
+PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+"http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.xsrw.wms.stock.mapper.TMoveLibraryMapper">
+
+    <sql id="selectTMoveLibraryVo">
+        select tmovelibrary.id, tmovelibrary.code, tmovelibrary.location_out_id, tmovelibrary.location_in_id, tmovelibrary.tray_id, tmovelibrary.status, tmovelibrary.auditor_status, tmovelibrary.auditor, tmovelibrary.auditor_name, tmovelibrary.remark, tmovelibrary.create_by, tmovelibrary.create_time, tmovelibrary.update_by, tmovelibrary.update_time, tmovelibrary.dept_id, tmovelibrary.dept_name, tmovelibrary.del_flag
+        from t_move_library tmovelibrary
+    </sql>
+
+    <select id="selectTMoveLibraryList" parameterType="com.xsrw.wms.stock.domain.TMoveLibrary" resultType="com.xsrw.wms.stock.domain.TMoveLibrary">
+        <include refid="selectTMoveLibraryVo"/>
+        <if test="params.dataScope != null  and params.dataScope != ''">
+            inner join sys_user u on u.user_name = tmovelibrary.create_by and u.status = '0'
+            inner join sys_dept d on u.dept_id = d.dept_id and d.status = '0'
+        </if>
+        <where>
+            tmovelibrary.del_flag = '0'
+            <if test="code != null  and code != ''"> and tmovelibrary.code like concat('%', #{code}, '%')</if>
+            <if test="locationOutId != null "> and tmovelibrary.location_out_id = #{locationOutId}</if>
+            <if test="locationInId != null "> and tmovelibrary.location_in_id = #{locationInId}</if>
+            <if test="trayId != null "> and tmovelibrary.tray_id = #{trayId}</if>
+            <if test="status != null  and status != ''"> and tmovelibrary.status = #{status}</if>
+            <if test="auditorStatus != null  and auditorStatus != ''"> and tmovelibrary.auditor_status = #{auditorStatus}</if>
+            <if test="auditor != null  and auditor != ''"> and tmovelibrary.auditor = #{auditor}</if>
+            <if test="auditorName != null  and auditorName != ''"> and tmovelibrary.auditor_name like concat('%', #{auditorName}, '%')</if>
+        </where>
+        <!-- 数据范围过滤 -->
+        ${params.dataScope}
+    </select>
+
+    <select id="selectMoveLibraryList" resultType="com.xsrw.wms.stock.domain.vo.MoveLibraryVo">
+        select distinct
+        l.id,
+        l.code,
+        l.dept_id,
+        l.dept_name,
+        l.location_out_id,
+        l.location_in_id,
+        l.tray_id,
+        l.status,
+        l.auditor_status,
+        l.auditor,
+        l.auditor_name,
+        l.create_by,
+        l.create_time,
+        l.update_by,
+        l.update_time,
+        l.remark,
+        l.del_flag
+        from
+        t_move_library as l
+        left join t_move_library_detail as d on l.code = d.move_library_code and d.del_flag = '0'
+        <where>
+            l.del_flag = '0'
+            <if test="moveLibrary.code != null and moveLibrary.code != ''"> and l.code = #{moveLibrary.code}</if>
+            <if test="moveLibrary.deptId != null "> and l.dept_id = #{moveLibrary.deptId}</if>
+            <if test="moveLibrary.status != null  and moveLibrary.status != ''"> and l.status = #{moveLibrary.status}</if>
+            <if test="moveLibrary.auditorStatus != null  and moveLibrary.auditorStatus != ''"> and l.auditor_status = #{moveLibrary.auditorStatus}</if>
+            <if test="materialIds != null and materialIds.size()!=0">
+                and d.material_id in
+                <foreach item="materialId" collection="materialIds" open="(" separator="," close=")">
+                    #{materialId}
+                </foreach>
+            </if>
+        </where>
+        order by l.create_time desc, l.id desc
+    </select>
+
+    <delete id="deleteTMoveLibraryById" parameterType="Long">
+         update t_move_library set del_flag = '1' where id = #{id}
+    </delete>
+
+    <delete id="deleteTMoveLibraryByIds" parameterType="String">
+        update t_move_library set del_flag = '1' where id in
+        <foreach item="id" collection="array" open="(" separator="," close=")">
+            #{id}
+        </foreach>
+    </delete>
+
+</mapper>

@@ -1,0 +1,150 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper
+PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+"http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.xsrw.wms.inout.mapper.TTaskOutMapper">
+
+    <sql id="selectTTaskOutVo">
+        select ttaskout.id, ttaskout.out_delivery_id, ttaskout.out_delivery_detail_id, ttaskout.material_id, ttaskout.predict_count, ttaskout.actual_count, ttaskout.status, ttaskout.stock_id, ttaskout.remark, ttaskout.create_by, ttaskout.create_time, ttaskout.update_by, ttaskout.update_time, ttaskout.dept_id, ttaskout.dept_name, ttaskout.del_flag
+        from t_task_out ttaskout
+    </sql>
+
+    <select id="scanTrayNew" resultType="Map">
+        SELECT
+        e.batch_code batchCode,
+        b.predict_count predictCount
+        FROM
+        t_task_wcs a
+        JOIN t_task_out b ON a.id = b.wcs_id
+        AND b.STATUS = 0
+        JOIN t_out_delivery_detail d ON b.out_delivery_detail_id = d.id
+        AND d.next_flag = 1
+        join t_stock e on b.stock_id = e.id
+        WHERE
+        a.task_status = 1
+        AND a.task_type = 2
+        AND a.tray_id = #{trayId}
+    </select>
+    <select id="scanTray" resultType="com.xsrw.wms.inout.domain.vo.PADTOutDeliveryDetailVO">
+        SELECT
+        c.id material_id,
+        c.`code` material_code,
+        c.`name` material_name,
+        b.predict_count,
+        d.small_predict_count,
+        e.count,
+        g.`name` unit_name,
+        b.tray_id,
+        b.location_id,
+        i.batch_code
+        FROM
+        t_task_out b
+        JOIN t_out_delivery_detail d ON b.out_delivery_detail_id = d.id
+        AND d.next_flag = 1
+        JOIN t_material c ON b.material_id = c.id
+        LEFT JOIN t_unit_config e ON c.id = e.id
+        LEFT JOIN t_unit f ON e.min_unit_id = f.id
+        JOIN t_unit g ON c.unit_id = g.id
+        left JOIN t_material_detail h ON c.id = h.material_id
+        JOIN t_stock i ON h.material_id = i.material_id
+        AND b.tray_id = i.tray_id
+        WHERE
+        b.`status` in (0,1)  and b.tray_id = #{trayId} and h.rfid = #{rfid}
+    </select>
+
+    <select id="selectTTrayList" parameterType="com.xsrw.wms.stock.domain.TStock" resultType="com.xsrw.wms.base.domain.vo.TTrayVO">
+        SELECT
+        a.id stockid,
+        b.id,
+        b.`code`,
+        b.tray_category,
+        a.available_count,
+        c.`name` locationname,
+        d.`name` areaname,
+        a.location_id,d.id area_id,
+        e.id reservoirid,e.name reservoirname,
+        c.location_type,
+        a.material_id,
+        a.batch_code
+        FROM
+        t_stock a
+       left  JOIN t_tray b ON a.tray_id = b.id and  b.del_flag = 0
+        JOIN t_location c ON a.location_id = c.id and c.goods_allocation_status = 2  and c.status = 1
+        JOIN t_area d ON a.area_id = d.id and d.status = 0
+        join t_reservoir e  on  c.reservoir_id = e.id
+        WHERE
+        a.material_id = #{materialId}  and  a.`status` = 0 and a.is_freeze = 0 and a.del_flag = 0
+        <if test="code != null and code != ''"> and b.`code` like "%" #{code} "%" </if>
+        <if test="trayCategory != null  and trayCategory != ''"> and b.tray_category = #{trayCategory}</if>
+        <if test="locationType!=null and locationType!=''"> and c.location_type=#{locationType}</if>
+        ORDER BY ${remark}
+        <!-- 数据范围过滤 -->
+        ${params.dataScope}
+    </select>
+
+    <select id="selectTTaskOutList" parameterType="com.xsrw.wms.inout.domain.TTaskOut" resultType="com.xsrw.wms.inout.domain.TTaskOut">
+        <include refid="selectTTaskOutVo"/>
+        <if test="params.dataScope != null  and params.dataScope != ''">
+            inner join sys_user u on u.user_name = ttaskout.create_by and u.status = '0'
+            inner join sys_dept d on u.dept_id = d.dept_id and d.status = '0'
+        </if>
+        <where>
+            ttaskout.del_flag = '0'
+            <if test="outDeliveryId != null "> and ttaskout.out_delivery_id = #{outDeliveryId}</if>
+            <if test="outDeliveryDetailId != null  and outDeliveryDetailId != ''"> and ttaskout.out_delivery_detail_id = #{outDeliveryDetailId}</if>
+            <if test="materialId != null "> and ttaskout.material_id = #{materialId}</if>
+            <if test="predictCount != null "> and ttaskout.predict_count = #{predictCount}</if>
+            <if test="actualCount != null "> and ttaskout.actual_count = #{actualCount}</if>
+            <if test="status != null  and status != ''"> and ttaskout.status = #{status}</if>
+            <if test="stockId != null "> and ttaskout.stock_id = #{stockId}</if>
+        </where>
+        <!-- 数据范围过滤 -->
+        ${params.dataScope}
+    </select>
+
+    <delete id="deleteTTaskOutById" parameterType="Long">
+         update t_task_out set del_flag = '1' where id = #{id}
+    </delete>
+
+    <delete id="deleteTTaskOutByIds" parameterType="String">
+        update t_task_out set del_flag = '1' where id in
+        <foreach item="id" collection="array" open="(" separator="," close=")">
+            #{id}
+        </foreach>
+    </delete>
+
+
+
+
+    <select id="getNowDayNum" resultType="java.lang.Long">
+        select
+            ifnull(sum(before_count - current_count),0)
+        from t_stock_detail
+        where del_flag = '0'
+          and type = '2'
+          and date_format(create_time,'%Y-%m-%d') = date_format(now(),'%Y-%m-%d')
+    </select>
+
+    <select id="outMonthMoney" resultType="java.math.BigDecimal">
+        select ifnull(sum((t1.before_count-t1.current_count) * t2.unit_price),0)
+        from t_stock_detail t1
+                 left join t_material t2 on t1.material_id = t2.id
+        where t1.del_flag = '0'
+          and t1.type = '2'
+          and date_format(t1.create_time, '%Y-%m') = date_format(now(), '%Y-%m')
+    </select>
+
+    <select id="outKeyPointMaterial" resultType="java.util.Map">
+        select ifnull(sum((t1.before_count-t1.current_count) * t2.unit_price), 0) as outAmount,
+               ifnull(sum(t1.before_count-t1.current_count),0) as outActualCount,
+               t2.id as materialId,
+               t2.name as materialName
+        from t_stock_detail t1
+                 left join t_material t2 on t1.material_id = t2.id
+        where t1.del_flag = '0'
+          and t1.type = '2'
+          and t2.important_status = '1'
+          and date_format(t1.create_time, '%Y-%m') = date_format(now(), '%Y-%m')
+        group by t2.id,t2.name
+    </select>
+</mapper>

@@ -1,0 +1,153 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper
+        PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.xsrw.wms.inout.mapper.TTaskInMapper">
+
+    <sql id="selectTTaskInVo">
+        select ttaskin.id, ttaskin.advance_registration_id, ttaskin.material_id, ttaskin.predict_count, ttaskin.actual_count, ttaskin.status, ttaskin.tray_id, ttaskin.reservoir_id, ttaskin.location_id, ttaskin.recommend_location_id, ttaskin.area_id, ttaskin.batch_code, ttaskin.stock_id, ttaskin.wcs_id, ttaskin.remark, ttaskin.create_by, ttaskin.create_time, ttaskin.update_by, ttaskin.update_time, ttaskin.dept_id, ttaskin.dept_name, ttaskin.del_flag
+        from t_task_in ttaskin
+    </sql>
+
+    <select id="selectTTaskInList" parameterType="com.xsrw.wms.inout.domain.TTaskIn"
+            resultType="com.xsrw.wms.inout.domain.TTaskIn">
+        <include refid="selectTTaskInVo"/>
+        <if test="params.dataScope != null  and params.dataScope != ''">
+            inner join sys_user u on u.user_name = ttaskin.create_by and u.status = '0'
+            inner join sys_dept d on u.dept_id = d.dept_id and d.status = '0'
+        </if>
+        <where>
+            ttaskin.del_flag = '0'
+            <if test="advanceRegistrationId != null ">and ttaskin.advance_registration_id = #{advanceRegistrationId}
+            </if>
+            <if test="materialId != null ">and ttaskin.material_id = #{materialId}</if>
+            <if test="predictCount != null ">and ttaskin.predict_count = #{predictCount}</if>
+            <if test="actualCount != null ">and ttaskin.actual_count = #{actualCount}</if>
+            <if test="status != null  and status != ''">and ttaskin.status = #{status}</if>
+            <if test="trayId != null ">and ttaskin.tray_id = #{trayId}</if>
+            <if test="reservoirId != null ">and ttaskin.reservoir_id = #{reservoirId}</if>
+            <if test="locationId != null ">and ttaskin.location_id = #{locationId}</if>
+            <if test="recommendLocationId != null ">and ttaskin.recommend_location_id = #{recommendLocationId}</if>
+            <if test="areaId != null ">and ttaskin.area_id = #{areaId}</if>
+            <if test="batchCode != null  and batchCode != ''">and ttaskin.batch_code like concat('%', #{batchCode},
+                '%')
+            </if>
+            <if test="stockId != null ">and ttaskin.stock_id = #{stockId}</if>
+            <if test="wcsId != null ">and ttaskin.wcs_id = #{wcsId}</if>
+        </where>
+        <!-- 数据范围过滤 -->
+        ${params.dataScope}
+    </select>
+
+    <delete id="deleteTTaskInById" parameterType="Long">
+         update t_task_in set del_flag = '1' where id = #{id}
+    </delete>
+
+    <delete id="deleteTTaskInByIds" parameterType="String">
+        update t_task_in set del_flag = '1' where id in
+        <foreach item="id" collection="array" open="(" separator="," close=")">
+            #{id}
+        </foreach>
+    </delete>
+
+
+    <update id="updateStatusByIds">
+        update t_task_in set status = #{status} where id in
+        <foreach item="id" collection="ids" open="(" separator="," close=")">
+            #{id}
+        </foreach>
+    </update>
+
+    <select id="selectRegistrationIdList" resultType="long">
+        select t.advance_registration_id
+        from t_task_in t
+        where t.del_flag = '0' and t.id in
+        <foreach item="id" collection="ids" open="(" separator="," close=")">
+            #{id}
+        </foreach>
+    </select>
+
+    <select id="selectTTaskInInfoByIds" resultType="com.xsrw.wms.inout.domain.vo.TTaskInVO">
+        select
+            a.id ,
+            a.advance_registration_id ,
+            a.material_id ,
+            a.actual_count ,
+            a.tray_id ,
+            a.batch_code,
+            a.status ,
+            a.location_id ,
+            a.tray_id ,
+            b.detection_count as detectionCountDelivery,
+            b.putaway_count as putawayCountDelivery,
+            b.receive_count as receiveCountDelivery,
+            b.produced_date,
+            b.expire_date,
+            c.id as originId,
+            c.code as originCode,
+            d.area_id
+        from t_task_in a
+        left join t_advance_delivery_detail b on a.advance_registration_id = b.id
+        left join t_advance_delivery c on b.advance_delivery_id = c.id
+        left join t_location d on a.location_id = d.id
+        where a.del_flag = '0' and a.id in
+        <foreach item="id" collection="ids" open="(" separator="," close=")">
+            #{id}
+        </foreach>
+    </select>
+
+
+    <select id="selectTTaskInInfoByRegistrationId" resultType="com.xsrw.wms.inout.domain.vo.TTaskInVO">
+        select
+        a.id ,
+        a.advance_registration_id ,
+        a.material_id ,
+        a.predict_count ,
+        a.actual_count ,
+        a.tray_id ,
+        a.batch_code,
+        b.code as materialCode ,
+        b.name as materialName,
+        c.name as unitName,
+        tt.code as trayCode
+        from t_task_in a
+        left join t_material b on a.material_id = b.id
+        left join t_unit c on b.unit_id = c.id
+        left join t_tray tt on a.tray_id = tt.id
+        where a.del_flag = '0' and a.advance_registration_id = #{registrationId}
+    </select>
+
+
+    <select id="getNowDayNum" resultType="java.lang.Long">
+        select
+            ifnull(sum(current_count - before_count),0)
+        from t_stock_detail
+        where del_flag = '0'
+          and type = '1'
+          and date_format(create_time,'%Y-%m-%d') = date_format(now(),'%Y-%m-%d')
+    </select>
+    <select id="inMonthMoney" resultType="java.math.BigDecimal">
+        select
+            ifnull(sum((t1.current_count-t1.before_count) * t2.unit_price),0)
+        from t_stock_detail t1
+        left join t_material t2 on t1.material_id = t2.id
+        where t1.del_flag = '0'
+          and t1.type = '1'
+          and date_format(t1.create_time,'%Y-%m') = date_format(now(),'%Y-%m')
+    </select>
+
+    <select id="inKeyPointMaterial" resultType="java.util.Map">
+        select ifnull(sum((t1.current_count - t1.before_count) * t2.unit_price), 0) as inAmount,
+               ifnull(sum(t1.current_count - t1.before_count), 0) as inActualCount,
+               t2.id as materialId,
+               t2.name as materialName
+        from t_stock_detail t1
+                 left join t_material t2 on t1.material_id = t2.id
+        where t1.del_flag = '0'
+          and t1.type = '1'
+          and t2.important_status = '1'
+          and date_format(t1.create_time, '%Y-%m') = date_format(now(), '%Y-%m')
+        group by t2.id,t2.name
+    </select>
+
+</mapper>

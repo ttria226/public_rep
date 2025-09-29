@@ -1,0 +1,58 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper
+        PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.xsrw.wms.stock.mapper.TStockRecheckMapper">
+
+    <sql id="selectTStockRecheckVo">
+        select a.id, a.stock_id, a.fail_count, a.status, a.remark, a.create_by, a.create_time, a.update_by, a.update_time, a.dept_id, a.dept_name, a.del_flag
+        from t_stock_recheck a
+    </sql>
+
+    <select id="selectTStockRecheckList" parameterType="com.xsrw.wms.stock.domain.dto.TStockRecheckDTO"
+            resultType="com.xsrw.wms.stock.domain.vo.TStockRecheckVO">
+        select
+            a.id, a.stock_id, a.fail_count, a.status, a.remark, a.create_by, a.create_time,
+            b.material_id , b.location_id , b.count , b.batch_code,
+            m.code as materialCode, m.name as materialName,
+            tu.name as unitName,
+            tl.name as locationName,
+            tr.name as reservoirName
+        from t_stock_recheck a
+        left join t_stock b on a.stock_id = b.id
+        left join t_material m on b.material_id = m.id
+        left join t_unit tu on m.unit_id = tu.id
+        left join t_location tl on b.location_id = tl.id
+        left join t_reservoir tr on tl.reservoir_id = tr.id
+        <if test="params.dataScope != null  and params.dataScope != ''">
+            inner join sys_user u on u.user_name = a.create_by and u.status = '0'
+            inner join sys_dept d on u.dept_id = d.dept_id and d.status = '0'
+        </if>
+        <where>
+            a.del_flag = '0'
+            <if test="stockId != null ">and a.stock_id = #{stockId}</if>
+            <if test="id != null ">and a.id = #{id}</if>
+            <if test="failCount != null ">and a.fail_count = #{failCount}</if>
+            <if test="status != null  and status != ''">and a.status = #{status}</if>
+            <if test="materialCode != null  and materialCode != ''">and m.code like concat('%',#{materialCode},'%')</if>
+            <if test="materialName != null  and materialName != ''">and m.name like concat('%',#{materialName},'%')</if>
+            <if test="batchCode != null  and batchCode != ''">and b.batch_code like concat('%',#{batchCode},'%')</if>
+            <if test="reservoirId != null">and tl.reservoir_id = #{reservoirId}</if>
+        </where>
+        <!-- 数据范围过滤 -->
+        ${params.dataScope}
+        order by a.create_time desc
+    </select>
+
+    <delete id="deleteTStockRecheckById" parameterType="Long">
+         update t_stock_recheck set del_flag = '1' where id = #{id}
+    </delete>
+
+    <delete id="deleteTStockRecheckByIds" parameterType="String">
+        update t_stock_recheck set del_flag = '1' where id in
+        <foreach item="id" collection="array" open="(" separator="," close=")">
+            #{id}
+        </foreach>
+    </delete>
+
+</mapper>

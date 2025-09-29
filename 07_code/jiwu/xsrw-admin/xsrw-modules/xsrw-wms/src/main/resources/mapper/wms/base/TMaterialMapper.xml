@@ -1,0 +1,152 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper
+PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+"http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.xsrw.wms.base.mapper.TMaterialMapper">
+
+    <sql id="selectTMaterialVo">
+        select tmaterial.id, tmaterial.code, tmaterial.name, tmaterial.specifications, tmaterial.unit_id, tmaterial.contacts_unit_id, tmaterial.batch_flag, tmaterial.batch_attr_id, tmaterial.base_unit_id, tmaterial.same_material_flag, tmaterial.same_batch_flag, tmaterial.category_id, tmaterial.inspection_method, tmaterial.expiration_flag, tmaterial.stock_max, tmaterial.stock_min, tmaterial.expiration_date, tmaterial.rough_weight, tmaterial.net_weight, tmaterial.finance_voucher_no,tmaterial.unit_price,tmaterial.description,tmaterial.remark, tmaterial.create_by, tmaterial.create_time, tmaterial.update_by, tmaterial.update_time, tmaterial.dept_id, tmaterial.dept_name, tmaterial.del_flag, tmaterial.img
+        from t_material tmaterial
+    </sql>
+
+    <select id="selectTMaterialList" parameterType="com.xsrw.wms.base.domain.TMaterial" resultType="com.xsrw.wms.base.domain.vo.TMaterialVO">
+        select
+        t1.id,
+        t1.code,
+        t1.name,
+        t1.specifications,
+        t1.unit_id,
+        t1.contacts_unit_id,
+        t1.category_id,
+        t1.batch_flag,
+        t1.batch_attr_id,
+        t1.base_unit_id,
+        t1.same_material_flag,
+        t1.same_batch_flag,
+        t1.inspection_method,
+        t1.expiration_date,
+        t1.expiration_flag,
+        t1.finance_voucher_no,
+        t1.unit_price,
+        t1.description,
+        t1.stock_max,
+        t1.stock_min,
+        t1.material_length,
+        t1.material_height,
+        t1.material_width,
+        t1.create_by,
+        t1.create_time,
+        t1.update_by,
+        t1.update_time,
+        t1.remark,
+        t1.del_flag,
+        t1.net_weight,
+        t1.rough_weight,
+        t1.img,
+        t1.important_status,
+        t2.name as unitName,
+        t3.name as categoryName,
+        t4.name as batch_attrName,
+        t5.name as contactsUnitName
+        from t_material t1
+        left join t_unit t2 on t1.unit_id = t2.id
+        left join t_category t3 on t1.category_id = t3.id
+        left join t_batch_attr t4 on t1.batch_attr_id = t4.id
+        left join t_contacts_unit t5 on t1.contacts_unit_id = t5.id
+        <if test="params.dataScope != null  and params.dataScope != ''">
+            inner join sys_user u on u.user_name = t1.create_by and u.status = '0'
+            inner join sys_dept d on u.dept_id = d.dept_id and d.status = '0'
+        </if>
+        <where>
+            t1.del_flag = '0'
+            <if test="code != null "> and t1.code = #{code}</if>
+            <if test="name != null "> and t1.name like concat('%', #{name}, '%')</if>
+            <if test="specifications != null  and specifications != ''"> and t1.specifications = #{specifications}</if>
+            <if test="contactsUnitId != null"> and t1.contacts_unit_id = #{contactsUnitId}</if>
+            <if test="categoryId != null"> and t1.category_id = #{categoryId}</if>
+            <if test="unitId != null">and t1.unit_id = #{unitId}</if>
+            <if test="batchAttrId != null">and t1.batch_attr_id = #{batchAttrId}</if>
+            <if test="importantStatus != null and importantStatus != ''">and t1.important_status = #{importantStatus}</if>
+        </where>
+        <!-- 数据范围过滤 -->
+        ${params.dataScope}
+        order by t1.create_time desc
+    </select>
+
+    <delete id="deleteTMaterialById" parameterType="Long">
+         update t_material set del_flag = '1' where id = #{id}
+    </delete>
+
+    <delete id="deleteTMaterialByIds" parameterType="String">
+        update t_material set del_flag = '1' where id in
+        <foreach item="id" collection="array" open="(" separator="," close=")">
+            #{id}
+        </foreach>
+    </delete>
+
+    <select id="getMaterialSelectList" resultType="com.xsrw.wms.base.domain.vo.TMaterialVO">
+        select
+            t1.id,
+            t1.code,
+            t1.name,
+            t1.specifications,
+            t1.batch_flag,
+            t1.batch_attr_id,
+            t1.base_unit_id,
+            t1.same_material_flag,
+            t1.same_batch_flag,
+            t1.inspection_method,
+            t1.expiration_date,
+            t1.expiration_flag,
+            t1.remark,
+            t1.del_flag,
+            t1.net_weight,
+            t1.rough_weight,
+            t2.name as unitName,
+            t3.name as categoryName,
+            t4.name as batch_attrName,
+            t5.name as contactsUnitName
+        from t_material t1
+        left join t_unit t2 on t1.unit_id = t2.id
+        left join t_category t3 on t1.category_id = t3.id
+        left join t_batch_attr t4 on t1.batch_attr_id = t4.id
+        left join t_contacts_unit t5 on t1.contacts_unit_id = t5.id
+        where t1.del_flag = '0'
+        <if test="code != null "> and t1.code = #{code}</if>
+        <if test="name != null "> and t1.name like concat('%', #{name}, '%')</if>
+        <if test="specifications != null  and specifications != ''"> and t1.specifications = #{specifications}</if>
+        <if test="contactsUnitId != null"> and t1.contacts_unit_id = #{contactsUnitId}</if>
+        <if test="categoryId != null"> and t1.category_id = #{categoryId}</if>
+        <if test="unitId != null">and t1.unit_id = #{unitId}</if>
+        <if test="batchAttrId != null">and t1.batch_attr_id = #{batchAttrId}</if>
+        order by t1.create_time desc
+    </select>
+
+    <select id="selectInfoById" resultType="com.xsrw.wms.base.domain.vo.TMaterialVO">
+        select
+            a.id,
+            a.code,
+            a.name,
+            a.specifications,
+            a.unit_id as unitId,
+            a.contacts_unit_id as contactsUnitId,
+            a.batch_flag as batchFlag,
+            a.batch_attr_id as batchAttrId,
+            a.base_unit_id as baseUnitId,
+            a.same_material_flag as sameMaterialFlag,
+            a.same_batch_flag as sameBatchFlag,
+            a.category_id as categoryId,
+            a.inspection_method as inspectionMethod,
+            a.expiration_flag as expirationFlag,
+            a.stock_max as stockMax,
+            a.stock_min as stockMin,
+            a.expiration_date as expirationDate,
+            a.rough_weight as roughWeight,
+            a.net_weight as netWeight,
+            a.remark,
+            b.name as batchAttrName
+        from t_material a
+        left join t_batch_attr b on a.batch_attr_id = b.id
+        where a.id = #{id}
+    </select>
+</mapper>

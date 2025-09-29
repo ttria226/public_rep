@@ -1,0 +1,48 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper
+PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+"http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.xsrw.wms.equipment.mapper.DInspectionItemsMapper">
+
+    <sql id="selectDInspectionItemsVo">
+        select dinspectionitems.id, dinspectionitems.name, dinspectionitems.item_no, dinspectionitems.remark, dinspectionitems.create_by, dinspectionitems.create_time, dinspectionitems.update_by, dinspectionitems.update_time, dinspectionitems.dept_id, dinspectionitems.dept_name, dinspectionitems.del_flag, dinspectionitems.dep_id, dinspectionitems.dep_name, dinspectionitems.equipment_id,dinspectionitems.status
+        from d_inspection_items dinspectionitems
+    </sql>
+
+    <select id="selectDInspectionItemsList" parameterType="com.xsrw.wms.equipment.domain.DInspectionItems" resultType="com.xsrw.wms.equipment.domain.DInspectionItems">
+        <include refid="selectDInspectionItemsVo"/>
+        <if test="params.dataScope != null  and params.dataScope != ''">
+            inner join sys_user u on u.user_name = dinspectionitems.create_by and u.status = '0'
+            inner join sys_dept d on u.dept_id = d.dept_id and d.status = '0'
+        </if>
+        <where>
+            dinspectionitems.del_flag = '0'
+            <if test="name != null  and name != ''"> and dinspectionitems.name like concat('%', #{name}, '%')</if>
+            <if test="itemNo != null  and itemNo != ''"> and dinspectionitems.item_no = #{itemNo}</if>
+            <if test="depName != null  and depName != ''"> and dinspectionitems.dep_name like concat('%', #{depName}, '%')</if>
+            <if test="equipmentId != null  and equipmentId != ''"> and dinspectionitems.equipment_id like concat('%', #{equipmentId}, '%')</if>
+        </where>
+        <!-- 数据范围过滤 -->
+        ${params.dataScope}
+    </select>
+
+    <delete id="deleteDInspectionItemsById" parameterType="Long">
+         update d_inspection_items set del_flag = '1' where id = #{id}
+    </delete>
+
+    <delete id="deleteDInspectionItemsByIds" parameterType="String">
+        update d_inspection_items set del_flag = '1' where id in
+        <foreach item="id" collection="array" open="(" separator="," close=")">
+            #{id}
+        </foreach>
+    </delete>
+    <select id="isadd" resultType="com.xsrw.wms.equipment.domain.DInspectionItems">
+        SELECT
+            *
+        FROM
+            d_inspection_items
+        WHERE
+            FIND_IN_SET( #{equipmentid}, equipment_id ) and status = 1 and del_flag = 0
+    </select>
+
+</mapper>

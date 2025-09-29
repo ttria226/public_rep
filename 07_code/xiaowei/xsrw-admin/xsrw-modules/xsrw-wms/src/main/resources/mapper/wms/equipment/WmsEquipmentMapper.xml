@@ -1,0 +1,85 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper
+PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+"http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.xsrw.wms.equipment.mapper.WmsEquipmentMapper">
+
+    <sql id="selectWmsEquipmentVo">
+        select equipment.id, equipment.name, equipment.equ_no, equipment.asset_no, equipment.serial_no, equipment.model, equipment.
+function_location, equipment.dep_id, equipment.dep_name, equipment.supplier, equipment.use_status, equipment.person, equipment.remark, equipment.create_by, equipment.create_time, equipment.update_by, equipment.update_time, equipment.dept_id, equipment.dept_name, equipment.del_flag,equipment.img
+        from d_equipment equipment
+    </sql>
+
+    <select id="selectWmsEquipmentList" parameterType="com.xsrw.wms.equipment.domain.WmsEquipment" resultType="com.xsrw.wms.equipment.domain.WmsEquipment">
+        <include refid="selectWmsEquipmentVo"/>
+        <if test="params.dataScope != null  and params.dataScope != ''">
+            inner join sys_user u on u.user_name = equipment.create_by and u.status = '0'
+            inner join sys_dept d on u.dept_id = d.dept_id and d.status = '0'
+        </if>
+        <where>
+            equipment.del_flag = '0'
+            <if test="name != null  and name != ''"> and equipment.name like concat('%', #{name}, '%')</if>
+            <if test="equNo != null  and equNo != ''"> and equipment.equ_no = #{equNo}</if>
+            <if test="assetNo != null  and assetNo != ''"> and equipment.asset_no = #{assetNo}</if>
+            <if test="serialNo != null  and serialNo != ''"> and equipment.serial_no = #{serialNo}</if>
+            <if test="model != null  and model != ''"> and equipment.model = #{model}</if>
+            <if test="functionLocation != null  and functionLocation != ''"> and equipment.function_location = #{functionLocation}</if>
+            <if test="depId != null "> and equipment.dep_id = #{depId}</if>
+            <if test="depName != null  and depName != ''"> and equipment.dep_name like concat('%', #{depName}, '%')</if>
+            <if test="supplier != null  and supplier != ''"> and equipment.supplier = #{supplier}</if>
+            <if test="useStatus != null "> and equipment.use_status = #{useStatus}</if>
+            <if test="person != null  and person != ''"> and equipment.person = #{person}</if>
+        </where>
+        <!-- 数据范围过滤 -->
+        ${params.dataScope}
+        ORDER BY create_time DESC
+    </select>
+
+    <delete id="deleteWmsEquipmentById" parameterType="Long">
+         update d_equipment set del_flag = '1' where id = #{id}
+    </delete>
+
+    <delete id="deleteWmsEquipmentByIds" parameterType="String">
+        update d_equipment set del_flag = '1' where id in
+        <foreach item="id" collection="array" open="(" separator="," close=")">
+            #{id}
+        </foreach>
+    </delete>
+
+    <select id="equipmentStatistics" resultType="com.xsrw.wms.kanban.domain.vo.EquipmentStatisticsVO">
+        select
+            t1.totalCount,
+            t2.normalCount,
+            t3.faultyCount,
+            t4.maintenanceCount,
+            t5.inspectionCount
+        from
+            (select
+                 count(1) totalCount
+             from d_equipment
+             where del_flag='0' ) t1,
+            (select
+                 count(1) normalCount
+             from d_equipment
+             where del_flag='0'
+               and use_status=1) t2,
+            (select
+                 count(1) faultyCount
+             from d_equipment
+             where del_flag='0'
+               and use_status=2 ) t3,
+            (select
+                 count(distinct e.id) maintenanceCount
+             from d_equipment_maintenance_day emd
+             left join d_equipment e on emd.equipment_id=e.id
+             where emd.del_flag='0' and e.del_flag='0'
+               and emd.type=1 and emd.status in(1,2) ) t4,
+            (select
+                 count(distinct e.id) inspectionCount
+             from d_inspection_plan_detail ipd
+            left join d_inspection_plan ip on ipd.plan_id=ip.id
+            left join d_equipment e on ipd.equipment_id=e.id
+             where ipd.del_flag='0' and ip.del_flag='0' and e.del_flag='0' and ip.status=2
+               and plan_start_time>=now() and plan_end_time>=concat(DATE_FORMAT(now(),"%Y-%m-%d"),' 00:00:00')) t5
+    </select>
+</mapper>

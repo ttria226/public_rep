@@ -1,0 +1,49 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper
+PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+"http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.xsrw.wms.equipment.mapper.DRepairReportMapper">
+
+    <sql id="selectDRepairReportVo">
+        select drepairreport.source,drepairreport.id, drepairreport.equipment_id, drepairreport.faulty_accessory_name, drepairreport.fault_message, drepairreport.fault_lv, drepairreport.equipment_status, drepairreport.is_shutdown, drepairreport.img, drepairreport.company_id, drepairreport.executor_id, drepairreport.remark, drepairreport.create_by, drepairreport.create_time, drepairreport.update_by, drepairreport.update_time, drepairreport.dept_id, drepairreport.dept_name, drepairreport.del_flag,drepairreport.status
+        from d_repair_report drepairreport
+    </sql>
+
+    <select id="selectDRepairReportList" parameterType="com.xsrw.wms.equipment.domain.DRepairReport" resultType="com.xsrw.wms.equipment.domain.DRepairReport">
+        <include refid="selectDRepairReportVo"/>
+        <if test="params.dataScope != null  and params.dataScope != ''">
+            inner join sys_user u on u.user_name = drepairreport.create_by and u.status = '0'
+            inner join sys_dept d on u.dept_id = d.dept_id and d.status = '0'
+        </if>
+        <if test="equName != null ">left join d_equipment e ON drepairreport.equipment_id = e.id</if>
+        <where>
+            drepairreport.del_flag = '0'
+            <if test="equipmentId != null "> and drepairreport.equipment_id = #{equipmentId}</if>
+            <if test="faultyAccessoryName != null  and faultyAccessoryName != ''"> and drepairreport.faulty_accessory_name like concat('%', #{faultyAccessoryName}, '%')</if>
+            <if test="faultMessage != null  and faultMessage != ''"> and drepairreport.fault_message = #{faultMessage}</if>
+            <if test="faultLv != null "> and drepairreport.fault_lv = #{faultLv}</if>
+            <if test="equipmentStatus != null "> and drepairreport.equipment_status = #{equipmentStatus}</if>
+            <if test="isShutdown != null "> and drepairreport.is_shutdown = #{isShutdown}</if>
+            <if test="img != null  and img != ''"> and drepairreport.img = #{img}</if>
+            <if test="companyId != null "> and drepairreport.company_id = #{companyId}</if>
+            <if test="executorId != null "> and drepairreport.executor_id = #{executorId}</if>
+            <if test="equName != null "> and e.name = #{equName}</if>
+            <if test="createBy != null "> and drepairreport.create_by = #{createBy}</if>
+
+        </where>
+        <!-- 数据范围过滤 -->
+        ${params.dataScope}
+    </select>
+
+    <delete id="deleteDRepairReportById" parameterType="Long">
+         update d_repair_report set del_flag = '1' where id = #{id}
+    </delete>
+
+    <delete id="deleteDRepairReportByIds" parameterType="String">
+        update d_repair_report set del_flag = '1' where id in
+        <foreach item="id" collection="array" open="(" separator="," close=")">
+            #{id}
+        </foreach>
+    </delete>
+
+</mapper>

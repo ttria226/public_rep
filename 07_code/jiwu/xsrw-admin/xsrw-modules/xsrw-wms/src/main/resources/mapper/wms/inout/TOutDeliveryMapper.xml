@@ -1,0 +1,203 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper
+PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+"http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.xsrw.wms.inout.mapper.TOutDeliveryMapper">
+
+    <sql id="selectTOutDeliveryVo">
+        select toutdelivery.id, toutdelivery.code, toutdelivery.origin_code, toutdelivery.origin_date, toutdelivery.origin_data, toutdelivery.type, toutdelivery.status, toutdelivery.auditor, toutdelivery.new_local, toutdelivery.remark, tod.rsnum, toutdelivery.create_by, toutdelivery.create_time, toutdelivery.update_by, toutdelivery.update_time, toutdelivery.dept_id, toutdelivery.dept_name, toutdelivery.del_flag,toutdelivery.complete_state
+        from t_out_delivery toutdelivery left join t_erp_in_out tod on toutdelivery.code = tod.zzdjbm 
+    </sql>
+
+    <select id="selectTOutDeliveryList" parameterType="com.xsrw.wms.inout.domain.TOutDelivery" resultType="com.xsrw.wms.inout.domain.vo.TOutDeliveryVO">
+        <include refid="selectTOutDeliveryVo"/>
+        <if test="params.dataScope != null  and params.dataScope != ''">
+            inner join sys_user u on u.user_name = toutdelivery.create_by and u.status = '0'
+            inner join sys_dept d on u.dept_id = d.dept_id and d.status = '0'
+        </if>
+        <where>
+            toutdelivery.del_flag = '0'
+            <if test="code != null  and code != ''"> and toutdelivery.code like concat('%', #{code}, '%')</if>
+            <if test="originCode != null  and originCode != ''"> and toutdelivery.origin_code like concat('%', #{originCode}, '%')</if>
+            <if test="originDate != null "> and toutdelivery.origin_date = #{originDate}</if>
+            <if test="originData != null  and originData != ''"> and toutdelivery.origin_data = #{originData}</if>
+            <if test="completeState!= null  and completeState!= ''"> and toutdelivery.complete_state = #{completeState}</if>
+            <if test="type != null  and type != ''"> and toutdelivery.type = #{type}</if>
+            <if test="status != null  and status != ''"> and toutdelivery.status = #{status}</if>
+            <if test="auditor != null  and auditor != ''"> and toutdelivery.auditor = #{auditor}</if>
+            <if test="newLocal != null  and newLocal != ''"> and toutdelivery.new_local = #{newLocal}</if>
+            <if test="deliveryModule != null and deliveryModule != ''">and toutdelivery.delivery_module = #{deliveryModule}</if>
+            <if test="refluxStatus != null  and refluxStatus != ''"> and toutdelivery.reflux_status = #{refluxStatus}</if>
+        </where>
+        <!-- 数据范围过滤 -->
+        ${params.dataScope}
+        order by toutdelivery.create_time desc
+    </select>
+
+    <select id="getMaterialSelectList" parameterType="com.xsrw.wms.base.domain.dto.TMaterialDTO" resultType="com.xsrw.wms.base.domain.vo.TMaterialSelectVO">
+        SELECT
+        a.id,
+        a.`name`,
+        a.`code`,
+        a.unit_id,
+        c.`name` unit_name,
+        d.count,(
+        SELECT NAME
+        FROM
+        t_unit
+        WHERE
+        id = d.min_unit_id
+        ) min_unit_name ,a.stock
+        FROM
+        (SELECT  a.id ,a.`name`,a.`code`,a.unit_id,sum(b.available_count) stock from t_material a join t_stock b on a.id = b.material_id AND b.`status` = 0
+        AND b.available_count > 0
+        AND b.is_freeze = 0
+        <if test="locationIds != null and locationIds.size > 0">
+            AND b.location_id in
+            <foreach collection="locationIds" open="(" close=")" separator="," item="item">
+                #{item}
+            </foreach>
+        </if>
+        AND b.del_flag = 0 GROUP BY a.id) a
+        LEFT JOIN t_unit c ON a.unit_id = c.id
+        LEFT JOIN t_unit_config d ON a.id = d.material_id
+        <where> 1=1
+            <if test="code != null  and code != ''"> and a.code like  "%" #{code} "%"</if>
+            <if test="name != null  and name != ''"> and a.`name` like  "%" #{name} "%"</if>
+        </where>
+        <!-- 数据范围过滤 -->
+        ${params.dataScope}
+    </select>
+
+    <delete id="deleteTOutDeliveryById" parameterType="Long">
+         update t_out_delivery set del_flag = '1' where id = #{id}
+    </delete>
+
+    <delete id="deleteTOutDeliveryByIds" parameterType="String">
+        update t_out_delivery set del_flag = '1' where id in
+        <foreach item="id" collection="array" open="(" separator="," close=")">
+            #{id}
+        </foreach>
+    </delete>
+
+
+    <delete id="deleteTOutDeliveryDetailByAdvanceDeliveryIds" parameterType="String">
+        update t_out_delivery_detail set del_flag = '1' where out_delivery_id in
+        <foreach item="id" collection="array" open="(" separator="," close=")">
+            #{id}
+        </foreach>
+    </delete>
+
+    <delete id="deleteTOutDeliveryDetailByAdvanceDeliveryId" parameterType="Long">
+        delete from t_out_delivery_detail where out_delivery_id = #{advanceDeliveryId}
+    </delete>
+
+    <insert id="batchTOutDeliveryDetail">
+        insert into t_out_delivery_detail( id, out_delivery_id, material_id, next_flag, plan_date, predict_date, predict_count, receive_count, detection_count, detection_fail_type, detection_fail_remark, registration_count, produced_date, batch_code, remark, create_by, create_time, update_by, update_time, dept_id, dept_name, del_flag) values
+		<foreach item="item" index="index" collection="list" separator=",">
+            ( #{item.id}, #{item.advanceDeliveryId}, #{item.materialId}, #{item.nextFlag}, #{item.planDate}, #{item.predictDate}, #{item.predictCount}, #{item.receiveCount}, #{item.detectionCount}, #{item.detectionFailType}, #{item.detectionFailRemark}, #{item.registrationCount}, #{item.producedDate}, #{item.batchCode}, #{item.remark}, #{item.createBy}, #{item.createTime}, #{item.updateBy}, #{item.updateTime}, #{item.deptId}, #{item.deptName}, #{item.delFlag})
+        </foreach>
+    </insert>
+    <select id="materilaCollect" resultType="java.util.Map" parameterType="com.xsrw.wms.report.domain.dto.ReportCenterDTO">
+
+        select
+            tm.`name`,
+            tm.`code`,
+            ifnull(tsm.available_count,0) stockCount,
+            ifnull(temp_in.inCount,0) inCount,
+            ifnull(temp_out.outCount,0) outCount
+        from t_material tm
+        left join t_stock_main tsm on tsm.material_id = tm.id
+        left join ( SELECT sum( s1.current_count - s1.before_count ) inCount,s1.material_id FROM t_stock_detail s1 WHERE s1.type = '1'
+                    <if test="dto.beginDate != null and dto.beginDate != ''">
+                        and s1.create_time >= #{dto.beginDate}
+                    </if>
+                    <if test="dto.endDate != null and dto.endDate != ''">
+                        and #{dto.endDate}>=s1.create_time
+                    </if>
+                    group by s1.material_id
+                    ) temp_in on tm.id=temp_in.material_id
+        left join ( SELECT sum( s1.before_count - s1.current_count ) outCount,s1.material_id FROM t_stock_detail s1 WHERE s1.type = '2'
+                    <if test="dto.beginDate != null and dto.beginDate != ''">
+                        and s1.create_time >= #{dto.beginDate}
+                    </if>
+                    <if test="dto.endDate != null and dto.endDate != ''">
+                        and #{dto.endDate}>=s1.create_time
+                    </if>
+                    group by s1.material_id
+                    ) temp_out on tm.id=temp_out.material_id
+        <if test="dto.params.dataScope != null  and dto.params.dataScope != ''">
+            inner join sys_user u on u.user_name = tm.create_by and u.status = '0'
+            inner join sys_dept d on u.dept_id = d.dept_id and d.status = '0'
+        </if>
+        where tm.del_flag = 0
+        <if test="dto.materialCode != null and dto.materialCode != ''">and tm.code like concat('%', #{dto.materialCode}, '%')</if>
+        <if test="dto.materialName != null and dto.materialName != ''">and tm.name like concat('%', #{dto.materialName}, '%')</if>
+        <!-- 数据范围过滤 -->
+        ${dto.params.dataScope}
+        order by tm.id desc
+
+    </select>
+
+    <select id="getMergeList" resultType="com.xsrw.wms.inout.domain.TOutDelivery">
+        <include refid="selectTOutDeliveryVo"/>
+        <if test="params.dataScope != null  and params.dataScope != ''">
+            inner join sys_user u on u.user_name = toutdelivery.create_by and u.status = '0'
+            inner join sys_dept d on u.dept_id = d.dept_id and d.status = '0'
+        </if>
+            left join t_out_delivery_detail toutdetail on toutdelivery.id = toutdetail.out_delivery_id
+        <where>
+            toutdelivery.del_flag = '0'
+                and toutdetail.small_predict_count is null
+                and toutdelivery.status = 2
+                and toutdelivery.complete_state = 1
+            <if test="code != null  and code != ''"> and toutdelivery.code like concat('%', #{code}, '%')</if>
+            <if test="originCode != null  and originCode != ''"> and toutdelivery.origin_code like concat('%', #{originCode}, '%')</if>
+            <if test="originDate != null "> and toutdelivery.origin_date = #{originDate}</if>
+            <if test="originData != null  and originData != ''"> and toutdelivery.origin_data = #{originData}</if>
+            <if test="completeState!= null  and completeState!= ''"> and toutdelivery.complete_state = #{completeState}</if>
+            <if test="type != null  and type != ''"> and toutdelivery.type = #{type}</if>
+            <if test="status != null  and status != ''"> and toutdelivery.status = #{status}</if>
+            <if test="auditor != null  and auditor != ''"> and toutdelivery.auditor = #{auditor}</if>
+            <if test="newLocal != null  and newLocal != ''"> and toutdelivery.new_local = #{newLocal}</if>
+        </where>
+        <!-- 数据范围过滤 -->
+        ${params.dataScope}
+        order by toutdelivery.create_time desc
+    </select>
+
+    <select id="selectOutCount" resultType="com.xsrw.wms.kanban.domain.vo.TaskStatusVO">
+        select
+            t1.notCompleteCount,
+            t2.underwayCount,
+            t3.hasCompleteCount
+        from
+            (select
+                 count(1) notCompleteCount
+             from t_out_delivery
+             where del_flag='0' and complete_state='1') t1,
+            (select
+                 count(1) underwayCount
+             from t_out_delivery
+             where del_flag='0' and complete_state='2') t2,
+            (select
+                 count(1) hasCompleteCount
+             from t_out_delivery
+             where del_flag='0' and complete_state='3') t3
+    </select>
+
+    <select id="selectChuKuList" resultType="com.xsrw.wms.inout.domain.vo.TOutboundScanningVO">
+        SELECT todd.out_delivery_id ,tod.`code` AS 'chuku_code' ,tmd.material_code AS 'wuliao_code', tmd.material_name AS 'name' ,
+        tmd.batch_code AS 'batch_code', tmd.rfid , tmd.rfid_count AS 'huansuan_shuliang', tmd.chuku_saomiao_time AS 'saomiao_shijian',
+        tmd.chuku_saomiao_flag
+        FROM t_material_detail tmd
+        LEFT JOIN t_out_delivery_detail todd ON tmd.out_delivery_detail_id = todd.id LEFT JOIN t_out_delivery tod ON todd.out_delivery_id = tod.id
+        WHERE tmd.chuku_saomiao = 1
+        <if test="tos.chukuCode!= null and tos.chukuCode != ''">AND tod.`code` = #{tos.chukuCode} </if>
+        <if test="tos.wuliaoCode != null and tos.wuliaoCode != ''">AND tmd.material_code = #{tos.wuliaoCode} </if>
+        <if test="tos.saomiaoShijianStart != null"> and date_format(tmd.chuku_saomiao_time,'%y-%m-%d')  >= date_format(#{tos.saomiaoShijianStart},'%y-%m-%d') </if>
+        <if test="tos.saomiaoShijianEnd != null"> and date_format(tmd.chuku_saomiao_time,'%y-%m-%d')  &lt;= date_format(#{tos.saomiaoShijianEnd},'%y-%m-%d') </if>
+        ORDER BY tmd.chuku_saomiao_time DESC
+    </select>
+
+</mapper>

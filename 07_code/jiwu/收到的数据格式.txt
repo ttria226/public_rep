@@ -1,0 +1,36 @@
+{"lift_project": [
+    {
+      "lift_name": 1,
+      "load": [
+        {
+          "boci": [
+            {
+              "lift_time": 10000,
+              "load_kind": "PD8B",
+              "load_number": 1
+            },
+            {
+              "lift_time": 10000,
+              "load_kind": "PD8B",
+              "load_number": 2
+            }
+          ]
+        },
+        {
+          "boci": [
+            {
+              "lift_time": 20000,
+              "load_kind": "PD8B",
+              "load_number": 1
+            },
+            {
+              "lift_time": 20000,
+              "load_kind": "PD8B",
+              "load_number": 2
+            }
+          ]
+        }
+      ]
+    }
+  ]
+}---

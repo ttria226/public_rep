@@ -1,0 +1,341 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper
+PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+"http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.xsrw.wms.inout.mapper.TMaterialDetailMapper">
+
+    <sql id="selectTMaterialDetailVo">
+        select a.id, a.code, a.advance_registration_id, a.material_id, a.material_name, a.material_code, a.rfid, a.batch_code, a.tray_id, a.location_id, a.status, a.use_count, a.weight, a.price, a.small_unit_count, a.detection_fail_type, a.detection_fail_remark, a.detection_fail_status, a.remark, a.create_by, a.create_time, a.update_by, a.update_time, a.dept_id, a.dept_name, a.del_flag
+        from t_material_detail a
+    </sql>
+
+    <select id="selectTMaterialDetailList" parameterType="com.xsrw.wms.inout.domain.dto.TMaterialDetailSerachDTO" resultType="com.xsrw.wms.inout.domain.vo.TMaterialDetailVO">
+        select a.id, a.code, a.advance_registration_id, a.material_id, a.material_name, a.material_code, a.rfid, a.batch_code, a.tray_id, a.location_id, a.status, ifnull(a.use_count,0) as use_count, a.weight, a.price, a.small_unit_count, a.detection_fail_type, a.detection_fail_remark, a.detection_fail_status, a.remark, a.rfid_head, a.create_time,
+        tu.name as unitName, tl.name as locationName,a.rfid_count
+        from t_material_detail a
+        left join t_material m on a.material_id = m.id
+        left join t_unit tu on m.unit_id = tu.id
+        left join t_location tl on a.location_id = tl.id
+        <if test="params.dataScope != null  and params.dataScope != ''">
+            inner join sys_user u on u.user_name = a.create_by and u.status = '0'
+            inner join sys_dept d on u.dept_id = d.dept_id and d.status = '0'
+        </if>
+        <where>
+            a.del_flag = '0'
+            <if test="code != null  and code != ''"> and a.code like concat('%', #{code}, '%')</if>
+            <if test="advanceRegistrationId != null "> and a.advance_registration_id = #{advanceRegistrationId}</if>
+            <if test="materialId != null "> and a.material_id = #{materialId}</if>
+            <if test="materialName != null  and materialName != ''"> and a.material_name like concat('%', #{materialName}, '%')</if>
+            <if test="materialCode != null  and materialCode != ''"> and a.material_code like concat('%', #{materialCode}, '%')</if>
+            <if test="rfid != null  and rfid != ''"> and a.rfid = #{rfid}</if>
+            <if test="batchCode != null  and batchCode != ''"> and a.batch_code like concat('%', #{batchCode}, '%')</if>
+            <if test="trayId != null "> and a.tray_id = #{trayId}</if>
+            <if test="status != null  and status != ''"> and a.status = #{status}</if>
+            <if test="useCount != null "> and a.use_count = #{useCount}</if>
+            <if test="weight != null "> and a.weight = #{weight}</if>
+            <if test="price != null "> and a.price = #{price}</if>
+            <if test="smallUnitCount != null "> and a.small_unit_count = #{smallUnitCount}</if>
+            <if test="detectionFailType != null  and detectionFailType != ''"> and a.detection_fail_type = #{detectionFailType}</if>
+            <if test="detectionFailRemark != null  and detectionFailRemark != ''"> and a.detection_fail_remark = #{detectionFailRemark}</if>
+            <if test="detectionFailStatus != null  and detectionFailStatus != ''"> and a.detection_fail_status = #{detectionFailStatus}</if>
+            <if test="rfidHead != null  and rfidHead != ''"> and a.rfid_head like concat('%', #{rfidHead}, '%')</if>
+            <choose>
+                <when test="locationStatus != null and locationStatus == 1">and a.location_id is null</when>
+                <when test="locationStatus != null and locationStatus == 2">and a.location_id is not null</when>
+                <when test="locationStatus != null and locationStatus == 3">and (a.location_id = #{locationId} or a.location_id is null)</when>
+                <when test="locationId != null">and a.location_id = #{locationId}</when>
+            </choose>
+        </where>
+        <!-- 数据范围过滤 -->
+        ${params.dataScope}
+        order by a.location_id desc, a.create_time desc
+    </select>
+
+    <delete id="deleteTMaterialDetailById" parameterType="Long">
+         update t_material_detail set del_flag = '1' where id = #{id}
+    </delete>
+
+    <delete id="deleteTMaterialDetailByIds" parameterType="String">
+        update t_material_detail set del_flag = '1' where id in
+        <foreach item="id" collection="array" open="(" separator="," close=")">
+            #{id}
+        </foreach>
+    </delete>
+
+    <delete id="deleteTMaterialDetailByDeliveryIds" parameterType="String">
+        update t_material_detail set del_flag = '1' where advance_registration_id in
+        <foreach item="deliveryDetail" collection="deliveryDetails" open="(" separator="," close=")">
+            #{deliveryDetail}
+        </foreach>
+    </delete>
+
+    <select id="selectTMaterialDetailAllList" parameterType="com.xsrw.wms.inout.domain.TMaterialDetail" resultType="com.xsrw.wms.inout.domain.vo.TMaterialDetailVO">
+        select a.material_id,a.batch_code,a.rfid,a.rfid_head,tm.`name` as materialName,a.rfid_count from t_material_detail a
+        inner join t_material tm on tm.id = a.material_id
+        <where>
+            a.del_flag = '0' and a.status in ('0','1','4') and a.detection_fail_status = '1'
+            <if test="code != null  and code != ''"> and a.code like concat('%', #{code}, '%')</if>
+            <if test="advanceRegistrationId != null "> and a.advance_registration_id = #{advanceRegistrationId}</if>
+            <if test="materialId != null "> and a.material_id = #{materialId}</if>
+            <if test="rfid != null  and rfid != ''"> and a.rfid = #{rfid}</if>
+            <if test="batchCode != null  and batchCode != ''"> and a.batch_code = #{batchCode}</if>
+            <if test="trayId != null "> and a.tray_id = #{trayId}</if>
+            <if test="status != null  and status != ''"> and a.status = #{status}</if>
+            <if test="detectionFailStatus != null  and detectionFailStatus != ''"> and a.detection_fail_status = #{detectionFailStatus}</if>
+            <if test="rfidHead != null  and rfidHead != ''"> and a.rfid_head = #{rfidHead}</if>
+        </where>
+    </select>
+
+    <select id="materialDetailMonthlyCountList" resultType="com.xsrw.wms.inout.domain.vo.TMaterialDetailMonthlyCountVo">
+        select
+        a.batch_code as batchcode,
+        tm.name as materialName ,
+        tm.code as materialCode,
+        tu.name as unitName,
+        tm.unit_price ,
+        count( 1 ) as currentcount,
+        sum( a.weight ) as totalweight,
+        sum( a.price ) as totalprice,
+        min(a.create_time)  createTime
+        from t_material_detail a
+        left join t_material tm on a.material_id = tm.id
+        left join t_unit tu on tm.unit_id = tu.id
+        <if test="entity.params.dataScope != null  and entity.params.dataScope != ''">
+            inner join sys_user u on u.user_name = a.create_by and u.status = '0'
+            inner join sys_dept d on u.dept_id = d.dept_id and d.status = '0'
+        </if>
+        <where>
+            a.del_flag = 0
+            <if test="entity.materialCode != null and entity.materialCode != ''"> and a.material_code like concat('%', #{entity.materialcode}, '%')</if>
+            <if test="entity.materialName != null and entity.materialName != ''"> and a.material_name like concat('%', #{entity.materialname}, '%')</if>
+            <if test="entity.batchCode != null and entity.batchCode != ''"> and a.batch_code like concat('%', #{entity.batchcode}, '%')</if>
+            <if test="entity.startDate != null"> and date_format(a.create_time,'%y-%m-%d')  &gt;= date_format(#{entity.startDate},'%y-%m-%d') </if>
+            <if test="entity.endDate != null"> and date_format(a.create_time,'%y-%m-%d')  &lt;= date_format(#{entity.endDate},'%y-%m-%d') </if>
+        </where>
+        <!-- 数据范围过滤 -->
+        ${entity.params.dataScope}
+        group by batchcode,a.material_id
+    </select>
+
+    <select id="selectTMaterialDetailInfoByIds" resultType="com.xsrw.wms.inout.domain.vo.TMaterialDetailVO">
+        select
+            a.id,
+            a.material_name ,
+            a.material_id ,
+            a.material_code ,
+            a.rfid ,
+            a.batch_code ,
+            a.advance_registration_id,
+            b.advance_delivery_id
+        from t_material_detail a
+        left join t_advance_delivery_detail b on a.advance_registration_id = b.id
+        where a.detection_fail_status = '0' and a.del_flag = '0' and b.del_flag = '0'
+         <choose>
+             <when test="deliveryId != null"> and b.advance_delivery_id = #{deliveryId}</when>
+             <otherwise>
+                 <foreach item="id" collection="ids" open=" and a.id in (" separator="," close=")">
+                     #{id}
+                 </foreach>
+             </otherwise>
+         </choose>
+    </select>
+
+    <update id="updateInfoByIdsOrRelId">
+        update t_material_detail set tray_id = #{trayId},location_id = #{deliveryDTO.locationId}
+        <if test="deliveryDTO.status != null and deliveryDTO.status != ''">, status = #{deliveryDTO.status}</if>
+        where del_flag = '0' and location_id is null
+        <if test="deliveryDTO.id != null">and advance_registration_id = #{deliveryDTO.id}</if>
+        <if test="deliveryDTO.materialDetailIds != null and deliveryDTO.materialDetailIds.size()>0">
+            <foreach item="materialDetailId" collection="deliveryDTO.materialDetailIds" open=" and id in (" separator="," close=")">
+                #{materialDetailId}
+            </foreach>
+        </if>
+        <if test="deliveryDTO.rfIds != null and deliveryDTO.rfIds.size()>0">
+            <foreach item="rfId" collection="deliveryDTO.rfIds" open=" and rfid in (" separator="," close=")">
+                #{rfId}
+            </foreach>
+        </if>
+    </update>
+
+    <update id="updateInfoByRfIds">
+        update t_material_detail set
+        <if test="status != null">status = #{status},</if>
+        tray_id = #{trayId}, location_id = #{locationId}
+        where del_flag = '0' and location_id is null and rfid in
+        <foreach item="rfId" collection="rfIds" open=" (" separator="," close=")">
+            #{rfId}
+        </foreach>
+    </update>
+
+    <update id="updateInfoByDetailId">
+        update t_material_detail set
+        <if test="status != null">status = #{status},</if>
+        tray_id = #{trayId}, location_id = #{locationId}
+        where del_flag = '0' and advance_registration_id = #{advanceDetailId}
+    </update>
+
+    <update id="updateStatusByParam">
+        update t_material_detail set status = #{status}
+        where del_flag = '0' and tray_id = #{trayId} and location_id = #{locationId}
+        <foreach collection="advanceDetailIds" item="advanceDetailId" separator="," open="and advance_registration_id in (" close=")">
+            #{advanceDetailId}
+        </foreach>
+    </update>
+
+    <select id="selectDetectionStatistics" resultType="com.xsrw.wms.report.domain.vo.QualityReportVO">
+        select
+        cu.name contactsUnitName,
+        cu.contact_person contactsUnitContact,
+        count(case when md.detection_fail_status  in (1,2) then 1 else null end) detectionCount,
+        count(case when md.detection_fail_status =1 then 1 else null end) detectionPassCount
+        from t_contacts_unit cu
+        left join t_material m on cu.id=m.contacts_unit_id and m.del_flag=0
+        left join t_material_detail md on m.id=md.material_id and md.detection_fail_status in (1,2)
+        where cu.del_flag=0
+        <if test="contactsUnitName!=null and contactsUnitName!=''">
+            and cu.name like concat('%',#{contactsUnitName},'%')
+        </if>
+        <if test="contactsUnitContact!=null and contactsUnitContact!=''">
+            and cu.contact_person like concat('%',#{contactsUnitContact},'%')
+        </if>
+        group by cu.id
+        order by cu.id desc
+    </select>
+
+    <select id="selectStockMaterialByRfidIds" resultType="com.xsrw.wms.stock.domain.dto.TStockInDTO">
+        select
+            a.material_id , a.batch_code , a.location_id ,  count(*) as count
+        from t_material_detail a
+        where a.del_flag = '0' and a.rfid in
+        <foreach item="rfId" collection="rfidList" open=" (" separator="," close=")">
+            #{rfId}
+        </foreach>
+        group by a.material_id , a.batch_code, a.location_id
+    </select>
+
+    <select id="getMaterialDetailByDelivery" resultType="int">
+        select count(*)
+        from t_material_detail a
+        left join t_advance_delivery_detail b on a.advance_registration_id = b.id
+        where a.del_flag = '0' and b.advance_delivery_id = #{deliveryId}
+        <if test="status != null  and status != ''"> and a.status = #{status}</if>
+    </select>
+
+    <select id="selectInfoById" resultType="com.xsrw.wms.inout.domain.vo.TMaterialDetailVO">
+         SELECT
+            a.id, a.CODE, a.advance_registration_id, a.material_id,
+            a.material_name, a.material_code, a.rfid, a.batch_code,
+            a.weight, a.price,a.rfid_head,
+            tu.NAME AS unitName,
+            m.description,m.specifications,
+            DATE_FORMAT(b.produced_date,'%Y-%m-%d') as produced_date
+        FROM t_material_detail a
+        LEFT JOIN t_material m ON a.material_id = m.id
+        LEFT JOIN t_unit tu ON m.unit_id = tu.id
+        LEFT JOIN t_advance_delivery_detail b ON a.advance_registration_id = b.id
+        WHERE a.id = #{id}
+    </select>
+
+    <select id="selectMDetailByAdvanceDetailId" resultType="com.xsrw.wms.inout.domain.vo.TMaterialDetailVO">
+        SELECT
+            a.id, a.CODE, a.advance_registration_id, a.material_id,
+            a.material_name, a.material_code, a.rfid, a.batch_code,
+            a.weight, a.price,
+            tu.NAME AS unitName,
+            m.description,m.specifications,
+            DATE_FORMAT(b.produced_date,'%Y-%m-%d') as produced_date
+        FROM t_material_detail a
+        LEFT JOIN t_material m ON a.material_id = m.id
+        LEFT JOIN t_unit tu ON m.unit_id = tu.id
+        LEFT JOIN t_advance_delivery_detail b ON a.advance_registration_id = b.id
+        LEFT JOIN t_advance_delivery c on b.advance_delivery_id = c.id
+        WHERE a.del_flag = '0'  AND a.`status` = '0'
+        AND c.id = #{advanceId}
+    </select>
+
+    <select id="selectRfIdInfoByDetailId" resultType="com.xsrw.wms.inout.domain.vo.TMaterialDetailVO">
+        SELECT
+            a.id, a.CODE, a.advance_registration_id, a.material_id,
+            a.material_name, a.material_code, a.rfid, a.batch_code,
+            a.detection_fail_status,
+            tu.NAME AS unitName,
+            m.description,m.specifications
+        FROM t_material_detail a
+        LEFT JOIN t_material m ON a.material_id = m.id
+        LEFT JOIN t_unit tu ON m.unit_id = tu.id
+        WHERE a.del_flag = '0'  AND a.`status` = '0' and (a.rfid_head is null or a.rfid_head = '')
+        AND a.advance_registration_id = #{deliveryDetailId}
+    </select>
+
+    <select id="selectMDetailByRfidHeadIds" resultType="com.xsrw.wms.inout.domain.vo.TMaterialDetailVO">
+        select
+            a.rfid_head,
+            a.material_code,
+            a.batch_code,
+            tu.NAME as unitName,
+            m.description,
+            count(*) as detailCount
+        from t_material_detail a
+        left join t_material m on a.material_id = m.id
+        left join t_unit tu on m.unit_id = tu.id
+        where a.del_flag = '0'
+        <foreach collection="rfidHeads" separator="," item="rfidHead" open=" and a.rfid_head in (" close=")">
+            #{rfidHead}
+        </foreach>
+        group by a.material_id , a.material_code , a.batch_code , a.rfid_head
+    </select>
+
+    <select id="selectSMMaterialDetailList"  resultType="com.xsrw.wms.inout.domain.vo.TMaterialDetailSVO">
+        SELECT t_advance_delivery.`code` AS 'ruku_code',t_advance_delivery_detail.id AS 'rukuzi_code', t_material.`code` AS 'wuliao_code',t_material.`name` ,t_advance_delivery_detail.batch_code ,t_advance_delivery_detail.predict_count,
+               (SELECT SUM(rfid_count) FROM t_material_detail WHERE advance_registration_id = t_advance_delivery_detail.id AND ruku_saomiao = 1) AS 'saomiao_shuliang',
+                (SELECT MAX(ruku_saomiao_time) FROM  t_material_detail WHERE advance_registration_id = t_advance_delivery_detail.id AND ruku_saomiao = 1) AS 'saomiao_shijian'
+        From t_advance_delivery_detail LEFT JOIN t_advance_delivery ON t_advance_delivery_detail.advance_delivery_id = t_advance_delivery.id
+                                       LEFT JOIN t_material ON t_advance_delivery_detail.material_id = t_material.id
+        WHERE t_advance_delivery_detail.del_flag = 0
+        <if test="sdto.rukuCode != null and sdto.rukuCode != ''"> and t_advance_delivery.`code` =#{sdto.rukuCode}</if>
+        <if test="sdto.wuliaoCode != null and sdto.wuliaoCode != ''"> and t_material.`code`=#{sdto.wuliaoCode}</if>
+        <if test="sdto.saomiaoShijianStart != null"> and date_format((SELECT MAX(ruku_saomiao_time) FROM  t_material_detail WHERE advance_registration_id = t_advance_delivery_detail.id AND ruku_saomiao = 1),'%y-%m-%d')  >= date_format(#{sdto.saomiaoShijianStart},'%y-%m-%d') </if>
+        <if test="sdto.saomiaoShijianEnd != null"> and date_format((SELECT MAX(ruku_saomiao_time) FROM  t_material_detail WHERE advance_registration_id = t_advance_delivery_detail.id AND ruku_saomiao = 1),'%y-%m-%d')  &lt;= date_format(#{sdto.saomiaoShijianEnd},'%y-%m-%d') </if>
+        ORDER BY t_advance_delivery.code DESC
+    </select>
+
+
+    <select id="selectSMMaterialDetailZiList"  resultType="com.xsrw.wms.inout.domain.vo.TMaterialDetailSZiVO">
+        SELECT tmd.material_code AS 'wuliao_code' , tmd.material_name AS 'name',
+               tmd.batch_code , tmd.rfid , tmd.rfid_count ,
+               tmd.ruku_saomiao AS 'rfid_Flag', tmd.ruku_saomiao_time AS 'saomiao_shijian'
+        FROM t_material_detail tmd WHERE tmd.advance_registration_id = #{sdtoZi.rukuCode}
+    </select>
+
+    <select id="selectCheckMaterialDetailList" parameterType="com.xsrw.wms.inout.domain.vo.TMaterialDetailVO"  resultType="com.xsrw.wms.inout.domain.vo.TMaterialDetailVO">
+        SELECT t2.area_id,t1.material_id,t1.material_name,t1.material_code,t2.reservoir_id,t3.name as reservoir_name,SUM(t1.rfid_count) as rfid_count,
+        (SELECT create_time FROM t_check_delivery where area_id=t2.area_id and reservoir_id=t2.reservoir_id and material_id=t1.material_id ORDER BY create_time desc LIMIT 1) as last_check_time
+        from t_material_detail t1
+        left join t_tray tray on t1.tray_id = tray.id
+        LEFT JOIN t_location t2 on t1.location_id=t2.id
+        LEFT JOIN t_reservoir t3 on t2.reservoir_id=t3.id
+        WHERE t1.del_flag = '0' and t1.rfid_count !=0
+        <if test="entity.areaId != null  and entity.areaId != ''">
+            and t2.area_id=#{areaId}
+        </if>
+        <if test="entity.reservoirId != null  and entity.reservoirId != ''">
+            and t2.reservoir_id=#{reservoirId}
+        </if>
+        <if test="trayType != null  and trayType != ''">
+            and tray.tray_category=#{trayType} and t2.location_type != '1'
+        </if>
+        <if test="entity.materialName != null  and entity.materialName != ''">
+            and t1.material_name=#{entity.materialName}
+        </if>
+        <if test="entity.materialCode != null  and entity.materialCode != ''">
+            and t1.material_code=#{entity.materialCode}
+        </if>
+        <if test="entity.batchCode != null  and entity.batchCode != ''">
+            and t1.batch_code=#{entity.batchCode}
+        </if>
+        <if test="entity.locationId != null  and entity.locationId != ''">
+            and t1.location_id=#{entity.locationId}
+        </if>
+        GROUP BY t2.area_id,t2.reservoir_id,t3.name,t1.material_id,t1.material_name,t1.material_code
+    </select>
+</mapper>

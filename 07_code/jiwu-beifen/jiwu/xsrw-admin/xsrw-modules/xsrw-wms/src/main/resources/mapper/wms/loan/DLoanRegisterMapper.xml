@@ -1,0 +1,83 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper
+        PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.xsrw.wms.loan.mapper.DLoanRegisterMapper">
+
+    <sql id="selectDLoanRegisterVo">
+        select a.id, a.equipment_id, a.register_count, a.available_count, a.status, a.remark, a.create_by, a.create_time, a.update_by, a.update_time, a.dept_id, a.dept_name, a.del_flag
+        from d_loan_register a
+    </sql>
+
+    <select id="selectDLoanRegisterList" parameterType="com.xsrw.wms.loan.domain.dto.DLoanRegisterDTO"
+            resultType="com.xsrw.wms.loan.domain.vo.DLoanRegisterVO">
+        select
+            a.id,
+            a.equipment_id,
+            a.register_count,
+            a.available_count,
+            a.status,
+            a.remark,
+            a.create_by,
+            a.create_time,
+            de.name as equipmentName,
+            de.equ_no as equipmentCode
+        from d_loan_register a
+        left join d_equipment de on a.equipment_id = de.id
+        <if test="params.dataScope != null  and params.dataScope != ''">
+            inner join sys_user u on u.user_name = a.create_by and u.status = '0'
+            inner join sys_dept d on u.dept_id = d.dept_id and d.status = '0'
+        </if>
+        <where>
+            a.del_flag = '0'
+            <if test="equipmentId != null ">and a.equipment_id = #{equipmentId}</if>
+            <if test="registerCount != null ">and a.register_count = #{registerCount}</if>
+            <if test="availableCount != null ">and a.available_count = #{availableCount}</if>
+            <if test="status != null  and status != ''">and a.status = #{status}</if>
+            <if test="equipmentName != null  and equipmentName != ''">
+                and de.name like concat('%', #{equipmentName}, '%')
+            </if>
+        </where>
+        <!-- 数据范围过滤 -->
+        ${params.dataScope}
+        order by a.create_time desc
+    </select>
+
+    <delete id="deleteDLoanRegisterById" parameterType="Long">
+         update d_loan_register set del_flag = '1' where id = #{id}
+    </delete>
+
+    <delete id="deleteDLoanRegisterByIds" parameterType="String">
+        update d_loan_register set del_flag = '1' where id in
+        <foreach item="id" collection="array" open="(" separator="," close=")">
+            #{id}
+        </foreach>
+    </delete>
+
+    <select id="getEquipmentList" parameterType="com.xsrw.wms.loan.domain.dto.DLoanRegisterDTO"
+            resultType="com.xsrw.wms.loan.domain.vo.DLoanRegisterEquipmentVO">
+        select
+        r.id as registerId, r.available_count ,
+        a.id, a.name, a.equ_no,  a.asset_no, a.serial_no, a.model, a.function_location,
+        a.use_status,a.dept_name
+        from d_loan_register r
+        left join d_equipment a on r.equipment_id = a.id
+        <if test="params.dataScope != null  and params.dataScope != ''">
+            inner join sys_user u on u.user_name = a.create_by and u.status = '0'
+            inner join sys_dept d on u.dept_id = d.dept_id and d.status = '0'
+        </if>
+        <where>
+            a.del_flag = '0' and r.del_flag = '0'
+            <if test="equipmentName != null  and equipmentName != ''">
+                and a.name like concat('%', #{equipmentName}, '%')
+            </if>
+            <if test="equipmentCode != null  and equipmentCode != ''">
+                and a.equ_no like concat('%', #{equipmentCode}, '%')
+            </if>
+        </where>
+        <!-- 数据范围过滤 -->
+        ${params.dataScope}
+        order by r.create_time desc
+    </select>
+
+</mapper>

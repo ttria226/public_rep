@@ -1,0 +1,259 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper
+PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+"http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.xsrw.wms.webservice.mapper.TErpInOutMapper">
+
+    <resultMap type="TErpInOut" id="TErpInOutResult">
+        <result property="id"    column="id"    />
+        <result property="trart"    column="trart"    />
+        <result property="zzywlx"    column="zzywlx"    />
+        <result property="zzdjbm"    column="zzdjbm"    />
+        <result property="zzdjhh"    column="zzdjhh"    />
+        <result property="werks"    column="werks"    />
+        <result property="lgort"    column="lgort"    />
+        <result property="lgnum"    column="lgnum"    />
+        <result property="tbnum"    column="tbnum"    />
+        <result property="tbpos"    column="tbpos"    />
+        <result property="matnr"    column="matnr"    />
+        <result property="maktx"    column="maktx"    />
+        <result property="maktg"    column="maktg"    />
+        <result property="matkl"    column="matkl"    />
+        <result property="wgbez"    column="wgbez"    />
+        <result property="charg"    column="charg"    />
+        <result property="bestq"    column="bestq"    />
+        <result property="sobkz"    column="sobkz"    />
+        <result property="pspnr"    column="pspnr"    />
+        <result property="menge"    column="menge"    />
+        <result property="meins"    column="meins"    />
+        <result property="dmbtr"    column="dmbtr"    />
+        <result property="lifnr"    column="lifnr"    />
+        <result property="name1"    column="name1"    />
+        <result property="ebeln"    column="ebeln"    />
+        <result property="ebelp"    column="ebelp"    />
+        <result property="rsnum"    column="rsnum"    />
+        <result property="rspos"    column="rspos"    />
+        <result property="usnamMkpf"    column="usnam_mkpf"    />
+        <result property="zzyl1"    column="zzyl1"    />
+        <result property="zzyl2"    column="zzyl2"    />
+        <result property="zzyl3"    column="zzyl3"    />
+        <result property="createBy"    column="create_by"    />
+        <result property="createTime"    column="create_time"    />
+        <result property="updateBy"    column="update_by"    />
+        <result property="updateTime"    column="update_time"    />
+    </resultMap>
+
+    <sql id="selectTErpInOutVo">
+        select id, trart, zzywlx, zzdjbm, zzdjhh, werks, lgort, lgnum, tbnum, tbpos, matnr, maktx, maktg, matkl, wgbez, charg, bestq, sobkz, pspnr, menge, meins, dmbtr, lifnr, name1, ebeln, ebelp, rsnum, rspos, usnam_mkpf, zzyl1, zzyl2, zzyl3, create_by, create_time, update_by, update_time from t_erp_in_out
+    </sql>
+
+    <select id="selectTErpInOutList" parameterType="TErpInOut" resultMap="TErpInOutResult">
+        <include refid="selectTErpInOutVo"/>
+        <where>
+            <if test="trart != null  and trart != ''"> and trart = #{trart}</if>
+            <if test="zzywlx != null  and zzywlx != ''"> and zzywlx = #{zzywlx}</if>
+            <if test="zzdjbm != null  and zzdjbm != ''"> and zzdjbm = #{zzdjbm}</if>
+            <if test="zzdjhh != null  and zzdjhh != ''"> and zzdjhh = #{zzdjhh}</if>
+            <if test="werks != null  and werks != ''"> and werks = #{werks}</if>
+            <if test="lgort != null  and lgort != ''"> and lgort = #{lgort}</if>
+            <if test="lgnum != null  and lgnum != ''"> and lgnum = #{lgnum}</if>
+            <if test="tbnum != null  and tbnum != ''"> and tbnum = #{tbnum}</if>
+            <if test="tbpos != null  and tbpos != ''"> and tbpos = #{tbpos}</if>
+            <if test="matnr != null  and matnr != ''"> and matnr = #{matnr}</if>
+            <if test="maktx != null  and maktx != ''"> and maktx = #{maktx}</if>
+            <if test="maktg != null  and maktg != ''"> and maktg = #{maktg}</if>
+            <if test="matkl != null  and matkl != ''"> and matkl = #{matkl}</if>
+            <if test="wgbez != null  and wgbez != ''"> and wgbez = #{wgbez}</if>
+            <if test="charg != null  and charg != ''"> and charg = #{charg}</if>
+            <if test="bestq != null  and bestq != ''"> and bestq = #{bestq}</if>
+            <if test="sobkz != null  and sobkz != ''"> and sobkz = #{sobkz}</if>
+            <if test="pspnr != null  and pspnr != ''"> and pspnr = #{pspnr}</if>
+            <if test="menge != null "> and menge = #{menge}</if>
+            <if test="meins != null  and meins != ''"> and meins = #{meins}</if>
+            <if test="dmbtr != null "> and dmbtr = #{dmbtr}</if>
+            <if test="lifnr != null  and lifnr != ''"> and lifnr = #{lifnr}</if>
+            <if test="name1 != null  and name1 != ''"> and name1 = #{name1}</if>
+            <if test="ebeln != null  and ebeln != ''"> and ebeln = #{ebeln}</if>
+            <if test="ebelp != null  and ebelp != ''"> and ebelp = #{ebelp}</if>
+            <if test="rsnum != null  and rsnum != ''"> and rsnum = #{rsnum}</if>
+            <if test="rspos != null  and rspos != ''"> and rspos = #{rspos}</if>
+            <if test="usnamMkpf != null  and usnamMkpf != ''"> and usnam_mkpf = #{usnamMkpf}</if>
+            <if test="zzyl1 != null  and zzyl1 != ''"> and zzyl1 = #{zzyl1}</if>
+            <if test="zzyl2 != null  and zzyl2 != ''"> and zzyl2 = #{zzyl2}</if>
+            <if test="zzyl3 != null  and zzyl3 != ''"> and zzyl3 = #{zzyl3}</if>
+        </where>
+    </select>
+
+    <select id="selectTErpInOutById" parameterType="Long" resultMap="TErpInOutResult">
+        <include refid="selectTErpInOutVo"/>
+        where id = #{id}
+    </select>
+
+    <insert id="insertTErpInOut" parameterType="TErpInOut" useGeneratedKeys="true" keyProperty="id">
+        insert into t_erp_in_out
+        <trim prefix="(" suffix=")" suffixOverrides=",">
+            <if test="trart != null">trart,</if>
+            <if test="zzywlx != null">zzywlx,</if>
+            <if test="zzdjbm != null">zzdjbm,</if>
+            <if test="zzdjhh != null">zzdjhh,</if>
+            <if test="werks != null">werks,</if>
+            <if test="lgort != null">lgort,</if>
+            <if test="lgnum != null">lgnum,</if>
+            <if test="tbnum != null">tbnum,</if>
+            <if test="tbpos != null">tbpos,</if>
+            <if test="matnr != null">matnr,</if>
+            <if test="maktx != null">maktx,</if>
+            <if test="maktg != null">maktg,</if>
+            <if test="matkl != null">matkl,</if>
+            <if test="wgbez != null">wgbez,</if>
+            <if test="charg != null">charg,</if>
+            <if test="bestq != null">bestq,</if>
+            <if test="sobkz != null">sobkz,</if>
+            <if test="pspnr != null">pspnr,</if>
+            <if test="menge != null">menge,</if>
+            <if test="meins != null">meins,</if>
+            <if test="dmbtr != null">dmbtr,</if>
+            <if test="lifnr != null">lifnr,</if>
+            <if test="name1 != null">name1,</if>
+            <if test="ebeln != null">ebeln,</if>
+            <if test="ebelp != null">ebelp,</if>
+            <if test="rsnum != null">rsnum,</if>
+            <if test="rspos != null">rspos,</if>
+            <if test="usnamMkpf != null">usnam_mkpf,</if>
+            <if test="zzyl1 != null">zzyl1,</if>
+            <if test="zzyl2 != null">zzyl2,</if>
+            <if test="zzyl3 != null">zzyl3,</if>
+            <if test="createBy != null">create_by,</if>
+            <if test="createTime != null">create_time,</if>
+            <if test="updateBy != null">update_by,</if>
+            <if test="updateTime != null">update_time,</if>
+         </trim>
+        <trim prefix="values (" suffix=")" suffixOverrides=",">
+            <if test="trart != null">#{trart},</if>
+            <if test="zzywlx != null">#{zzywlx},</if>
+            <if test="zzdjbm != null">#{zzdjbm},</if>
+            <if test="zzdjhh != null">#{zzdjhh},</if>
+            <if test="werks != null">#{werks},</if>
+            <if test="lgort != null">#{lgort},</if>
+            <if test="lgnum != null">#{lgnum},</if>
+            <if test="tbnum != null">#{tbnum},</if>
+            <if test="tbpos != null">#{tbpos},</if>
+            <if test="matnr != null">#{matnr},</if>
+            <if test="maktx != null">#{maktx},</if>
+            <if test="maktg != null">#{maktg},</if>
+            <if test="matkl != null">#{matkl},</if>
+            <if test="wgbez != null">#{wgbez},</if>
+            <if test="charg != null">#{charg},</if>
+            <if test="bestq != null">#{bestq},</if>
+            <if test="sobkz != null">#{sobkz},</if>
+            <if test="pspnr != null">#{pspnr},</if>
+            <if test="menge != null">#{menge},</if>
+            <if test="meins != null">#{meins},</if>
+            <if test="dmbtr != null">#{dmbtr},</if>
+            <if test="lifnr != null">#{lifnr},</if>
+            <if test="name1 != null">#{name1},</if>
+            <if test="ebeln != null">#{ebeln},</if>
+            <if test="ebelp != null">#{ebelp},</if>
+            <if test="rsnum != null">#{rsnum},</if>
+            <if test="rspos != null">#{rspos},</if>
+            <if test="usnamMkpf != null">#{usnamMkpf},</if>
+            <if test="zzyl1 != null">#{zzyl1},</if>
+            <if test="zzyl2 != null">#{zzyl2},</if>
+            <if test="zzyl3 != null">#{zzyl3},</if>
+            <if test="createBy != null">#{createBy},</if>
+            <if test="createTime != null">#{createTime},</if>
+            <if test="updateBy != null">#{updateBy},</if>
+            <if test="updateTime != null">#{updateTime},</if>
+         </trim>
+    </insert>
+
+    <update id="updateTErpInOut" parameterType="TErpInOut">
+        update t_erp_in_out
+        <trim prefix="SET" suffixOverrides=",">
+            <if test="trart != null">trart = #{trart},</if>
+            <if test="zzywlx != null">zzywlx = #{zzywlx},</if>
+            <if test="zzdjbm != null">zzdjbm = #{zzdjbm},</if>
+            <if test="zzdjhh != null">zzdjhh = #{zzdjhh},</if>
+            <if test="werks != null">werks = #{werks},</if>
+            <if test="lgort != null">lgort = #{lgort},</if>
+            <if test="lgnum != null">lgnum = #{lgnum},</if>
+            <if test="tbnum != null">tbnum = #{tbnum},</if>
+            <if test="tbpos != null">tbpos = #{tbpos},</if>
+            <if test="matnr != null">matnr = #{matnr},</if>
+            <if test="maktx != null">maktx = #{maktx},</if>
+            <if test="maktg != null">maktg = #{maktg},</if>
+            <if test="matkl != null">matkl = #{matkl},</if>
+            <if test="wgbez != null">wgbez = #{wgbez},</if>
+            <if test="charg != null">charg = #{charg},</if>
+            <if test="bestq != null">bestq = #{bestq},</if>
+            <if test="sobkz != null">sobkz = #{sobkz},</if>
+            <if test="pspnr != null">pspnr = #{pspnr},</if>
+            <if test="menge != null">menge = #{menge},</if>
+            <if test="meins != null">meins = #{meins},</if>
+            <if test="dmbtr != null">dmbtr = #{dmbtr},</if>
+            <if test="lifnr != null">lifnr = #{lifnr},</if>
+            <if test="name1 != null">name1 = #{name1},</if>
+            <if test="ebeln != null">ebeln = #{ebeln},</if>
+            <if test="ebelp != null">ebelp = #{ebelp},</if>
+            <if test="rsnum != null">rsnum = #{rsnum},</if>
+            <if test="rspos != null">rspos = #{rspos},</if>
+            <if test="usnamMkpf != null">usnam_mkpf = #{usnamMkpf},</if>
+            <if test="zzyl1 != null">zzyl1 = #{zzyl1},</if>
+            <if test="zzyl2 != null">zzyl2 = #{zzyl2},</if>
+            <if test="zzyl3 != null">zzyl3 = #{zzyl3},</if>
+            <if test="createBy != null">create_by = #{createBy},</if>
+            <if test="createTime != null">create_time = #{createTime},</if>
+            <if test="updateBy != null">update_by = #{updateBy},</if>
+            <if test="updateTime != null">update_time = #{updateTime},</if>
+        </trim>
+        where id = #{id}
+    </update>
+
+    <delete id="deleteTErpInOutById" parameterType="Long">
+        delete from t_erp_in_out where id = #{id}
+    </delete>
+
+    <delete id="deleteTErpInOutByIds" parameterType="String">
+        delete from t_erp_in_out where id in
+        <foreach item="id" collection="array" open="(" separator="," close=")">
+            #{id}
+        </foreach>
+    </delete>
+
+    <select id="selectTTaskInErpById" resultType="com.xsrw.wms.webservice.domain.vo.wms2erp.TErpInOutInfoVO">
+        select a.id , a.actual_count ,
+        <if test="taskType != null and taskType == 1">
+            a.batch_code,
+        </if>
+        <if test="taskType != null and taskType == 2">
+            ts.batch_code,
+        </if>
+        concat(ta.code, '-', tr.code, '-', d.erp_code) as erpCode,
+        e.code as materialCode,
+        erp.trart, erp.zzywlx, erp.zzdjbm, erp.zzdjhh, erp.werks, erp.lgort, erp.lgnum, erp.zzdjbm as tbnum, erp.zzdjhh as tbpos, erp.zzyl1
+        from t_task_wcs tw
+        left join t_task_wcs_detail twd on tw.id = twd.task_id
+        <if test="taskType != null and taskType == 1">
+            left join t_task_in a on a.id = twd.origin_id and twd.`type` = '1'
+            left join t_advance_delivery_detail b on a.advance_registration_id = b.id and b.del_flag = '0'
+            left join t_advance_delivery c on b.advance_delivery_id = c.id
+            left join t_location d on a.location_id = d.id
+            left join t_material e on a.material_id = e.id
+            inner join t_erp_in_out erp on erp.zzdjbm = `c`.code and e.code = erp.matnr and a.batch_code = erp.charg
+        </if>
+        <if test="taskType != null and taskType == 2">
+            left join t_task_out a on a.id = twd.origin_id and twd.`type` = '2'
+            left join t_stock ts on a.stock_id = ts.id
+            left join t_out_delivery `c` on a.out_delivery_id = `c`.id
+            left join t_location d on a.location_id = d.id
+            left join t_material e on a.material_id = e.id
+            inner join t_erp_in_out erp on erp.zzdjbm = `c`.code and e.code = erp.matnr and ts.batch_code = erp.charg
+        </if>
+        left join t_reservoir tr on d.reservoir_id = tr.id
+        left join t_area ta on ta.id = tr.area_id
+        where a.del_flag = '0' and twd.del_flag = '0' and c.del_flag = '0'
+        <if test="zzdjbm != null and zzdjbm != ''">and erp.zzdjbm = #{zzdjbm}</if>
+        <if test="zzdjhh != null and zzdjhh != ''">and erp.zzdjhh = #{zzdjhh}</if>
+        and tw.id = #{wcsId}
+    </select>
+</mapper>

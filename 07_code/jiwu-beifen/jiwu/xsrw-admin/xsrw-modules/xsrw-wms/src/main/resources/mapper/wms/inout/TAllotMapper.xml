@@ -1,0 +1,73 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper
+        PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.xsrw.wms.inout.mapper.TAllotMapper">
+
+    <sql id="selectTAllotVo">
+        select tallot.id, tallot.code, tallot.material_id, tallot.batch_code, tallot.allot_num, tallot.out_warehouse_id, tallot.out_warehouse_name, tallot.in_warehouse_id, tallot.in_warehouse_name, tallot.allot_status, tallot.auditor, tallot.create_by, tallot.create_time, tallot.update_by, tallot.update_time, tallot.dept_id, tallot.dept_name, tallot.del_flag
+        from t_allot tallot
+    </sql>
+
+    <select id="selectTAllotList" parameterType="com.xsrw.wms.inout.domain.TAllot" resultType="com.xsrw.wms.inout.domain.vo.TAllotVO">
+        select tallot.id, tallot.code, tallot.material_id, tallot.batch_code, tallot.allot_num, tallot.out_warehouse_id, tallot.out_warehouse_name, tallot.in_warehouse_id, tallot.in_warehouse_name, tallot.allot_status, tallot.auditor, tallot.create_by, tallot.create_time, tallot.update_by, tallot.update_time, tallot.dept_id, tallot.dept_name, tallot.del_flag
+        ,material.name as material_name,unit.name as unit_name,material.code as material_code
+        from t_allot tallot
+        <if test="params.dataScope != null  and params.dataScope != ''">
+            inner join sys_user u on u.user_name = tallot.create_by and u.status = '0'
+            inner join sys_dept d on u.dept_id = d.dept_id and d.status = '0'
+        </if>
+        left join t_material material on tallot.material_id = material.id
+        left join t_unit unit on unit.id = material.unit_id
+        <where>
+            tallot.del_flag = '0'
+            <if test="code != null  and code != ''"> and tallot.code like concat('%', #{code}, '%')</if>
+            <if test="materialId != null "> and tallot.material_id = #{materialId}</if>
+            <if test="batchCode != null  and batchCode != ''"> and tallot.batch_code like concat('%', #{batchCode}, '%')</if>
+            <if test="allotNum != null "> and tallot.allot_num = #{allotNum}</if>
+            <if test="outWarehouseId != null "> and tallot.out_warehouse_id = #{outWarehouseId}</if>
+            <if test="outWarehouseName != null  and outWarehouseName != ''"> and tallot.out_warehouse_name like concat('%', #{outWarehouseName}, '%')</if>
+            <if test="inWarehouseId != null "> and tallot.in_warehouse_id = #{inWarehouseId}</if>
+            <if test="inWarehouseName != null  and inWarehouseName != ''"> and tallot.in_warehouse_name like concat('%', #{inWarehouseName}, '%')</if>
+            <if test="allotStatus != null  and allotStatus != ''"> and tallot.allot_status = #{allotStatus}</if>
+            <if test="auditor != null  and auditor != ''"> and tallot.auditor = #{auditor}</if>
+        </where>
+        <!-- 数据范围过滤 -->
+        ${params.dataScope}
+    </select>
+
+    <delete id="deleteTAllotById" parameterType="Long">
+        update t_allot set del_flag = '1' where id = #{id}
+    </delete>
+
+    <delete id="deleteTAllotByIds" parameterType="String">
+        update t_allot set del_flag = '1' where id in
+        <foreach item="id" collection="array" open="(" separator="," close=")">
+            #{id}
+        </foreach>
+    </delete>
+
+    <update id="updateStatusByCode">
+        update t_allot set allot_status = #{allotStatus} where code = #{code}
+    </update>
+
+    <select id="selectListByParam" resultType="com.xsrw.wms.dispatch.domain.vo.AllotDispatchVO">
+        select
+            a.code,
+            m.code materialCode,
+            m.name materialName,
+            a.batch_code batchCode,
+            a.allot_num allotNum,
+            a.out_warehouse_name outWarehouseName,
+            a.in_warehouse_name inWarehouseName,
+            a.allot_status allotStatus,
+            a.create_time createTime
+        from t_allot a
+        left join t_material m on m.id=a.material_id
+        where 1=1
+        <if test="code != null and code!=''"> and a.code like concat('%',#{code},'%')</if>
+        <if test="materialName != null and materialName!=''"> and m.name like concat('%',#{materialName},'%')</if>
+        <if test="allotStatus != null and allotStatus!=''"> and a.allot_status=#{allotStatus}</if>
+        order by a.id desc
+    </select>
+</mapper>

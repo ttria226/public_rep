@@ -1,0 +1,175 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper
+        PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.xsrw.wms.inout.mapper.TAdvanceDeliveryMapper">
+
+    <sql id="selectTAdvanceDeliveryVo">
+        select tadvancedelivery.id, tadvancedelivery.code, tadvancedelivery.origin_code, tadvancedelivery.origin_date, tadvancedelivery.origin_data, tadvancedelivery.type, tadvancedelivery.status, tadvancedelivery.auditor, tadvancedelivery.audit_remark, tadvancedelivery.new_local, tadvancedelivery.complete_state, tadvancedelivery.quality_status, tadvancedelivery.put_status, tadvancedelivery.bom_id,tadvancedelivery.bom_count, tadvancedelivery.delivery_module, tadvancedelivery.remark, tadvancedelivery.create_by, tadvancedelivery.create_time, tadvancedelivery.update_by, tadvancedelivery.update_time, tadvancedelivery.dept_id, tadvancedelivery.dept_name, tadvancedelivery.del_flag
+        from t_advance_delivery tadvancedelivery
+    </sql>
+
+    <select id="selectTAdvanceDeliveryList" parameterType="com.xsrw.wms.inout.domain.dto.TAdvanceDeliveryDTO"
+            resultType="com.xsrw.wms.inout.domain.vo.TAdvanceDeliveryVO">
+        <include refid="selectTAdvanceDeliveryVo"/>
+        <if test="params.dataScope != null  and params.dataScope != ''">
+            inner join sys_user u on u.user_name = tadvancedelivery.create_by and u.status = '0'
+            inner join sys_dept d on u.dept_id = d.dept_id and d.status = '0'
+        </if>
+        <where>
+            tadvancedelivery.del_flag = '0'
+            <if test="code != null  and code != ''">and tadvancedelivery.code like concat('%', #{code}, '%')</if>
+            <if test="originCode != null  and originCode != ''">and tadvancedelivery.origin_code like concat('%',
+                #{originCode}, '%')
+            </if>
+            <if test="originDate != null ">and tadvancedelivery.origin_date = #{originDate}</if>
+            <if test="originData != null  and originData != ''">and tadvancedelivery.origin_data = #{originData}</if>
+            <if test="type != null  and type != ''">and tadvancedelivery.type = #{type}</if>
+            <if test="status != null and status != ''">and tadvancedelivery.status = #{status}</if>
+            <if test="inStatus != null and inStatus != ''">and tadvancedelivery.status in (${inStatus})</if>
+            <if test="auditor != null and auditor != ''">and tadvancedelivery.auditor = #{auditor}</if>
+            <if test="newLocal != null and newLocal != ''">and tadvancedelivery.new_local = #{newLocal}</if>
+            <if test="completeState != null  and completeState != ''"> and tadvancedelivery.complete_state = #{completeState}</if>
+            <if test="qualityStatus != null  and qualityStatus != ''"> and tadvancedelivery.quality_status = #{qualityStatus}</if>
+            <if test="putStatus != null  and putStatus != ''"> and tadvancedelivery.put_status = #{putStatus}</if>
+            <if test="bomId != null "> and tadvancedelivery.bom_id = #{bomId}</if>
+            <if test="deliveryModule != null and deliveryModule != ''">
+                <choose>
+                    <when test="deliveryModule == 2">and (tadvancedelivery.delivery_module = '2' or (tadvancedelivery.delivery_module = '0' and tadvancedelivery.status = '2'))</when>
+                    <otherwise>and tadvancedelivery.delivery_module = #{deliveryModule}</otherwise>
+                </choose>
+            </if>
+        </where>
+        <!-- 数据范围过滤 -->
+        ${params.dataScope}
+        order by tadvancedelivery.create_time desc
+    </select>
+
+    <delete id="deleteTAdvanceDeliveryById" parameterType="Long">
+         update t_advance_delivery set del_flag = '1' where id = #{id}
+    </delete>
+
+    <delete id="deleteTAdvanceDeliveryByIds" parameterType="String">
+        update t_advance_delivery set del_flag = '1' where id in
+        <foreach item="id" collection="array" open="(" separator="," close=")">
+            #{id}
+        </foreach>
+    </delete>
+
+    <select id="selectDelStatusCountByIds" resultType="int">
+        select count(*)
+        from t_advance_delivery tadvancedelivery
+        where status not in  ('1','2','9') and id in
+        <foreach item="id" collection="array" open="(" separator="," close=")">
+            #{id}
+        </foreach>
+    </select>
+
+    <update id="updateStatusByIds">
+        update t_advance_delivery set status = #{status} where id in
+        <foreach item="id" collection="ids" open="(" separator="," close=")">
+            #{id}
+        </foreach>
+    </update>
+
+    <select id="selectTaskKanban" resultType="com.xsrw.wms.kanban.domain.vo.TaskKanbanVO">
+        select
+            t1.inTaskCount,
+            t2.outTaskCount,
+            t3.inventoryTaskCount,
+            t4.moveTaskCount
+        from
+            (select
+                count(1) inTaskCount
+            from t_advance_delivery
+            where del_flag='0' and create_time>=#{beginDate}) t1,
+            (select
+                 count(1) outTaskCount
+             from t_out_delivery
+             where del_flag='0' and create_time>=#{beginDate}) t2,
+            (select
+                 count(1) inventoryTaskCount
+             from t_task
+             where del_flag='0'
+             and task_type='3' and create_time>=#{beginDate}) t3,
+            (select
+                 count(1) moveTaskCount
+             from t_task
+             where del_flag='0'
+               and task_type='5' and create_time>=#{beginDate}) t4
+    </select>
+
+    <select id="taskExecutionStatistics" resultType="com.xsrw.wms.kanban.domain.vo.TaskExecutionStatisticsVO">
+        select
+            st.statisticsTime,
+            ifnull(t1.inTaskCount,0) inTaskCount,
+            ifnull(t2.outTaskCount,0) outTaskCount,
+            ifnull(t3.moveTaskCount,0) moveTaskCount
+        from
+            (
+                <foreach collection="statisticsTimeList" item="item" separator="union all">
+                    select #{item} statisticsTime
+                </foreach>
+            ) st
+        left join
+            (select
+                 count(1) inTaskCount,
+                 DATE_FORMAT(create_time, '%Y-%m') statisticsTime
+             from t_advance_delivery
+             where del_flag='0' and create_time>=#{beginDate} group by statisticsTime) t1 on st.statisticsTime=t1.statisticsTime
+        left join
+            (select
+                 count(1) outTaskCount,
+                 DATE_FORMAT(create_time, '%Y-%m') statisticsTime
+             from t_out_delivery
+             where del_flag='0' and create_time>=#{beginDate} group by statisticsTime) t2 on st.statisticsTime=t2.statisticsTime
+        left join
+            (select
+                 count(1) moveTaskCount,
+                 DATE_FORMAT(create_time, '%Y-%m') statisticsTime
+             from t_task
+             where del_flag='0'
+               and task_type='5' and create_time>=#{beginDate} group by statisticsTime) t3 on st.statisticsTime=t3.statisticsTime
+    </select>
+
+    <select id="selectAdvanceCount" resultType="com.xsrw.wms.kanban.domain.vo.TaskStatusVO">
+        select
+            t1.notCompleteCount,
+            t2.underwayCount,
+            t3.hasCompleteCount
+        from
+            (select
+                count(1) notCompleteCount
+            from t_advance_delivery
+            where del_flag='0' and complete_state='1') t1,
+            (select
+                count(1) underwayCount
+            from t_advance_delivery
+            where del_flag='0' and complete_state='2') t2,
+            (select
+                count(1) hasCompleteCount
+            from t_advance_delivery
+            where del_flag='0' and complete_state='3') t3
+    </select>
+
+    <select id="deliveryTimeStatistics" resultType="com.xsrw.wms.report.domain.vo.DeliveryTimeStatisticsVO">
+        select
+            ad.code,
+            sum(tadd.predict_count) predictCount,
+            sum(tadd.receive_count) receiveCount,
+            ad.create_time createTime,
+            ad.plan_date planDate,
+            ad.predict_date predictDate,
+            (case when ad.plan_date is not null and ad.predict_date is not null
+            then round(ABS(timestampdiff(second,ad.plan_date,ad.predict_date))/3600,1)
+            else null end) time
+        from t_advance_delivery ad
+        left join t_advance_delivery_detail tadd on ad.id=tadd.advance_delivery_id and tadd.del_flag='0'
+        where ad.del_flag='0'
+        <if test="code!=null and code!=''">and ad.code like concat('%',#{code},'%')</if>
+        group by ad.id
+        order by ad.id desc
+    </select>
+
+
+</mapper>

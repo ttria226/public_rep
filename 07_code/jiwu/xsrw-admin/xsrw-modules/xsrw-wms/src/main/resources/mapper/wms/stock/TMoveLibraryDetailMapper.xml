@@ -1,0 +1,42 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper
+PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+"http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.xsrw.wms.stock.mapper.TMoveLibraryDetailMapper">
+
+    <sql id="selectTMoveLibraryDetailVo">
+        select tmovelibrarydetail.id, tmovelibrarydetail.move_library_code, tmovelibrarydetail.factory, tmovelibrarydetail.stock_id, tmovelibrarydetail.material_id, tmovelibrarydetail.count, tmovelibrarydetail.batch_code, tmovelibrarydetail.remark, tmovelibrarydetail.create_by, tmovelibrarydetail.create_time, tmovelibrarydetail.update_by, tmovelibrarydetail.update_time, tmovelibrarydetail.dept_id, tmovelibrarydetail.dept_name, tmovelibrarydetail.del_flag
+        from t_move_library_detail tmovelibrarydetail
+    </sql>
+
+    <select id="selectTMoveLibraryDetailList" parameterType="com.xsrw.wms.stock.domain.TMoveLibraryDetail" resultType="com.xsrw.wms.stock.domain.TMoveLibraryDetail">
+        <include refid="selectTMoveLibraryDetailVo"/>
+        <if test="params.dataScope != null  and params.dataScope != ''">
+            inner join sys_user u on u.user_name = tmovelibrarydetail.create_by and u.status = '0'
+            inner join sys_dept d on u.dept_id = d.dept_id and d.status = '0'
+        </if>
+        <where>
+            tmovelibrarydetail.del_flag = '0'
+            <if test="moveLibraryCode != null  and moveLibraryCode != ''"> and tmovelibrarydetail.move_library_code like concat('%', #{moveLibraryCode}, '%')</if>
+            <if test="factory != null "> and tmovelibrarydetail.factory = #{factory}</if>
+            <if test="stockId != null "> and tmovelibrarydetail.stock_id = #{stockId}</if>
+            <if test="materialId != null "> and tmovelibrarydetail.material_id = #{materialId}</if>
+            <if test="count != null "> and tmovelibrarydetail.count = #{count}</if>
+            <if test="batchCode != null  and batchCode != ''"> and tmovelibrarydetail.batch_code like concat('%', #{batchCode}, '%')</if>
+        </where>
+        <!-- 数据范围过滤 -->
+        ${params.dataScope}
+    </select>
+
+    <delete id="deleteTMoveLibraryDetailById" parameterType="Long">
+         update t_move_library_detail set del_flag = '1' where id = #{id}
+    </delete>
+
+    <delete id="deleteTMoveLibraryDetailByIds" parameterType="String">
+        update t_move_library_detail set del_flag = '1' where id in
+        <foreach item="id" collection="array" open="(" separator="," close=")">
+            #{id}
+        </foreach>
+    </delete>
+
+</mapper>

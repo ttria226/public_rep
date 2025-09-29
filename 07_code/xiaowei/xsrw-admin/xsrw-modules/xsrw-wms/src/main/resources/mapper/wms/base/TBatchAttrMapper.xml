@@ -1,0 +1,38 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper
+PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+"http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.xsrw.wms.base.mapper.TBatchAttrMapper">
+
+    <sql id="selectTBatchAttrVo">
+        select tbatchattr.id, tbatchattr.name, tbatchattr.field_name, tbatchattr.remark, tbatchattr.create_by, tbatchattr.create_time, tbatchattr.update_by, tbatchattr.update_time, tbatchattr.dept_id, tbatchattr.dept_name, tbatchattr.del_flag
+        from t_batch_attr tbatchattr
+    </sql>
+
+    <select id="selectTBatchAttrList" parameterType="com.xsrw.wms.base.domain.TBatchAttr" resultType="com.xsrw.wms.base.domain.TBatchAttr">
+        <include refid="selectTBatchAttrVo"/>
+        <if test="params.dataScope != null  and params.dataScope != ''">
+            inner join sys_user u on u.user_name = tbatchattr.create_by and u.status = '0'
+            inner join sys_dept d on u.dept_id = d.dept_id and d.status = '0'
+        </if>
+        <where>
+            tbatchattr.del_flag = '0'
+            <if test="name != null  and name != ''"> and tbatchattr.name like concat('%', #{name}, '%')</if>
+            <if test="fieldName != null  and fieldName != ''"> and tbatchattr.field_name like concat('%', #{fieldName}, '%')</if>
+        </where>
+        <!-- 数据范围过滤 -->
+        ${params.dataScope}
+    </select>
+
+    <delete id="deleteTBatchAttrById" parameterType="Long">
+         update t_batch_attr set del_flag = '1' where id = #{id}
+    </delete>
+
+    <delete id="deleteTBatchAttrByIds" parameterType="String">
+        update t_batch_attr set del_flag = '1' where id in
+        <foreach item="id" collection="array" open="(" separator="," close=")">
+            #{id}
+        </foreach>
+    </delete>
+
+</mapper>

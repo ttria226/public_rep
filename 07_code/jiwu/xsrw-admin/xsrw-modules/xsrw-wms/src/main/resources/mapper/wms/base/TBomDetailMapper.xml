@@ -1,0 +1,118 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper
+PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+"http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.xsrw.wms.base.mapper.TBomDetailMapper">
+
+    <sql id="selectTBomDetailVo">
+        select tbomdetail.id, tbomdetail.bom_id, tbomdetail.material_id, tbomdetail.count, tbomdetail.create_by, tbomdetail.create_time, tbomdetail.update_by, tbomdetail.update_time, tbomdetail.dept_id, tbomdetail.dept_name, tbomdetail.del_flag
+        from t_bom_detail tbomdetail
+    </sql>
+
+    <select id="selectTBomDetailList" parameterType="com.xsrw.wms.base.domain.TBomDetail" resultType="com.xsrw.wms.base.domain.TBomDetail">
+        select tbomdetail.id, tbomdetail.bom_id, tbomdetail.material_id, tbomdetail.count, tbomdetail.create_by, tbomdetail.create_time, tbomdetail.dept_name,
+        m.code as materialCode,
+        m.name as materialName,
+        tu.name as unitName
+        from t_bom_detail tbomdetail
+        left join t_material m on tbomdetail.material_id = m.id
+        left join t_unit tu on m.unit_id = tu.id
+        <if test="params.dataScope != null  and params.dataScope != ''">
+            inner join sys_user u on u.user_name = tbomdetail.create_by and u.status = '0'
+            inner join sys_dept d on u.dept_id = d.dept_id and d.status = '0'
+        </if>
+        <where>
+            tbomdetail.del_flag = '0'
+            <if test="bomId != null  and bomId != ''"> and tbomdetail.bom_id = #{bomId}</if>
+            <if test="count != null  and count != ''"> and tbomdetail.count = #{count}</if>
+        </where>
+        <!-- 数据范围过滤 -->
+        ${params.dataScope}
+    </select>
+
+    <delete id="deleteTBomDetailById" parameterType="Long">
+         update t_bom_detail set del_flag = '1' where id = #{id}
+    </delete>
+
+    <delete id="deleteTBomDetailByIds" parameterType="String">
+        update t_bom_detail set del_flag = '1' where id in
+        <foreach item="id" collection="array" open="(" separator="," close=")">
+            #{id}
+        </foreach>
+    </delete>
+
+    <delete id="deleteTBomDetailByBomId" parameterType="String">
+        update t_bom_detail set del_flag = '1' where bom_id in
+        <foreach item="id" collection="array" open="(" separator="," close=")">
+            #{id}
+        </foreach>
+    </delete>
+
+    <select id="getMaterialListByBomId" resultType="com.xsrw.wms.base.domain.vo.TMaterialVO">
+        select
+        t1.id,
+        t1.code,
+        t1.name,
+        t1.specifications,
+        t1.batch_flag,
+        t1.batch_attr_id,
+        t1.base_unit_id,
+        t1.same_material_flag,
+        t1.same_batch_flag,
+        t1.inspection_method,
+        t1.expiration_date,
+        t1.expiration_flag,
+        t1.remark,
+        t1.del_flag,
+        t1.net_weight,
+        t1.rough_weight,
+        t2.name as unitName,
+        t3.name as categoryName,
+        t4.name as batch_attrName,
+        t5.name as contactsUnitName,
+        tbomdetail.count as predictCount
+        from t_bom_detail tbomdetail
+        left join t_material t1 on tbomdetail.material_id = t1.id
+        left join t_unit t2 on t1.unit_id = t2.id
+        left join t_category t3 on t1.category_id = t3.id
+        left join t_batch_attr t4 on t1.batch_attr_id = t4.id
+        left join t_contacts_unit t5 on t1.contacts_unit_id = t5.id
+        where tbomdetail.del_flag = '0' and t1.del_flag = '0'
+        and tbomdetail.bom_id = #{bomId}
+        order by tbomdetail.create_time desc
+    </select>
+
+    <select id="selectTBomDetailStockList" resultType="com.xsrw.wms.base.domain.vo.TMaterialVO">
+        select
+        t1.id,
+        t1.code,
+        t1.name,
+        t1.specifications,
+        t1.batch_flag,
+        t1.batch_attr_id,
+        t1.base_unit_id,
+        t1.same_material_flag,
+        t1.same_batch_flag,
+        t1.inspection_method,
+        t1.expiration_date,
+        t1.expiration_flag,
+        t1.remark,
+        t1.del_flag,
+        t1.net_weight,
+        t1.rough_weight,
+        t2.name as unitName,
+        tbomdetail.count as predictCount,
+        ifnull(t3.library_count,0) as stockMin
+        from t_bom_detail tbomdetail
+        left join t_material t1 on tbomdetail.material_id = t1.id
+        left join t_unit t2 on t1.unit_id = t2.id
+        left join t_stock_main t3 on tbomdetail.material_id  = t3.material_id
+        where tbomdetail.del_flag = '0' and t1.del_flag = '0'
+        <choose>
+            <when test="bomId != null"> and tbomdetail.bom_id = #{bomId} </when>
+             <otherwise> and tbomdetail.id = #{id}  </otherwise>
+        </choose>
+        order by tbomdetail.create_time desc
+    </select>
+
+</mapper>

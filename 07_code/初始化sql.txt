@@ -1,0 +1,176 @@
+-- -------------清空wms---------------
+truncate t_advance_collection;
+truncate t_advance_collection_detail;
+truncate t_advance_put;
+truncate t_advance_quality;
+truncate t_advance_registration;
+truncate t_allot;
+truncate t_area;
+truncate t_bom;
+truncate t_bom_detail;
+truncate t_advance_delivery;
+truncate t_advance_delivery_detail;
+truncate t_classes;
+truncate t_good_shelf;
+truncate t_category;
+truncate t_check_area_history;
+truncate t_check_delivery;
+truncate t_check_history;
+truncate t_check_result;
+truncate t_contacts_unit;
+truncate t_location;
+truncate t_material;
+truncate t_material_detail;
+truncate t_move_library;
+truncate t_move_library_detail;
+truncate t_merge_delivery;
+truncate t_merge_delivery_detail;
+truncate t_out_recheck;
+truncate t_out_removal;
+truncate t_out_removal_detail;
+truncate t_out_shipments;
+truncate t_overstock_delivery;
+truncate t_overstock_delivery_detail;
+truncate t_person;
+truncate t_out_delivery;
+truncate t_out_delivery_detail;
+truncate t_out_delivery_samll_record;
+truncate t_rejection_detail;
+truncate t_reservoir;
+truncate t_stock;
+truncate t_stock_detail;
+truncate t_stock_main;
+truncate t_stock_recheck;
+truncate t_task;
+truncate t_task_detail;
+truncate t_task_in;
+truncate t_task_merge;
+truncate t_task_out;
+truncate t_task_wcs;
+truncate t_task_wcs_detail;
+truncate t_tray;
+truncate t_unit_config;
+
+
+
+
+-- -------------------------初始化数据-------------
+
+INSERT INTO `xsrw-cloud`.t_area
+(id, name, status, remark, create_by, create_time, update_by, update_time, dept_id, dept_name, del_flag)
+VALUES(5, '1楼托盘区域', '0', '1楼托盘区域', 'admin', '2023-07-04 11:10:39', NULL, NULL, 100, '新朔铁路科技', '0');
+INSERT INTO `xsrw-cloud`.t_area
+(id, name, status, remark, create_by, create_time, update_by, update_time, dept_id, dept_name, del_flag)
+VALUES(6, '2楼料箱区域', '0', '2楼料箱区域', 'admin', '2023-07-04 11:10:50', NULL, NULL, 100, '新朔铁路科技', '0');
+INSERT INTO `xsrw-cloud`.t_area
+(id, name, status, remark, create_by, create_time, update_by, update_time, dept_id, dept_name, del_flag)
+VALUES(7, '地堆区域', '0', '地堆区域', 'admin', '2023-07-10 11:38:36', NULL, NULL, 100, '新朔铁路科技', '0');
+
+
+INSERT INTO `xsrw-cloud`.t_reservoir
+(id, name, area_id, status, remark, create_by, create_time, update_by, update_time, dept_id, dept_name, del_flag, code)
+VALUES(4, '1楼托盘生鲜区域', 5, '0', '1楼托盘生鲜区域', 'admin', '2023-07-04 11:11:22', NULL, NULL, 100, '新朔铁路科技', '0', 'KQ0014');
+INSERT INTO `xsrw-cloud`.t_reservoir
+(id, name, area_id, status, remark, create_by, create_time, update_by, update_time, dept_id, dept_name, del_flag, code)
+VALUES(5, '1楼托盘百货区域', 5, '0', '1楼托盘百货区域', 'admin', '2023-07-04 11:11:36', NULL, NULL, 100, '新朔铁路科技', '0', 'KQ0015');
+INSERT INTO `xsrw-cloud`.t_reservoir
+(id, name, area_id, status, remark, create_by, create_time, update_by, update_time, dept_id, dept_name, del_flag, code)
+VALUES(6, '2楼托盘百货区域', 6, '0', '2楼托盘百货区域', 'admin', '2023-07-04 11:11:44', 'admin', '2023-07-04 11:11:51', 100, '新朔铁路科技', '0', 'KQ0016');
+INSERT INTO `xsrw-cloud`.t_reservoir
+(id, name, area_id, status, remark, create_by, create_time, update_by, update_time, dept_id, dept_name, del_flag, code)
+VALUES(7, '2楼托盘生鲜区域', 6, '0', '2楼托盘生鲜区域', 'admin', '2023-07-04 11:12:04', NULL, NULL, 100, '新朔铁路科技', '0', 'KQ0017');
+INSERT INTO `xsrw-cloud`.t_reservoir
+(id, name, area_id, status, remark, create_by, create_time, update_by, update_time, dept_id, dept_name, del_flag, code)
+VALUES(11, '地堆库区01号', 7, '0', '地堆库区01号', 'admin', '2023-07-10 11:39:00', NULL, NULL, 100, '新朔铁路科技', '0', 'KQ0021');
+INSERT INTO `xsrw-cloud`.t_reservoir
+(id, name, area_id, status, remark, create_by, create_time, update_by, update_time, dept_id, dept_name, del_flag, code)
+VALUES(12, '地堆库区02号', 7, '0', '地堆库区02号', 'admin', '2023-07-10 11:39:13', NULL, NULL, 100, '新朔铁路科技', '0', 'KQ0022');
+
+INSERT INTO `xsrw-cloud`.t_location
+(id, code, name, area_id, reservoir_id, category_id, deposit_category_id, unit_id, same_material_flag, same_batch_flag, upper_limit, location_row, location_column, location_plies, goods_allocation_status, status, location_type, pallet_num, good_shelf_id, remark, create_by, create_time, update_by, update_time, dept_id, dept_name, del_flag)
+VALUES(29, 'KW111-76F9', '库位-1楼-生鲜', 5, 4, NULL, NULL, NULL, '0', '0', NULL, 1, 1, 1, '1', '1', '0', NULL, NULL, '1', 'admin', '2023-07-04 11:21:30', NULL, NULL, 100, '新朔铁路科技', '0');
+INSERT INTO `xsrw-cloud`.t_location
+(id, code, name, area_id, reservoir_id, category_id, deposit_category_id, unit_id, same_material_flag, same_batch_flag, upper_limit, location_row, location_column, location_plies, goods_allocation_status, status, location_type, pallet_num, good_shelf_id, remark, create_by, create_time, update_by, update_time, dept_id, dept_name, del_flag)
+VALUES(30, 'KW121-E06C', '库位-1楼-百货', 5, 5, NULL, NULL, NULL, '0', '0', NULL, 1, 2, 1, '1', '1', '0', NULL, NULL, NULL, 'admin', '2023-07-04 11:22:37', NULL, NULL, 100, '新朔铁路科技', '0');
+INSERT INTO `xsrw-cloud`.t_location
+(id, code, name, area_id, reservoir_id, category_id, deposit_category_id, unit_id, same_material_flag, same_batch_flag, upper_limit, location_row, location_column, location_plies, goods_allocation_status, status, location_type, pallet_num, good_shelf_id, remark, create_by, create_time, update_by, update_time, dept_id, dept_name, del_flag)
+VALUES(31, 'KW111-3463', '库位-2楼-生鲜', 6, 6, NULL, NULL, NULL, '0', '0', NULL, 1, 1, 1, '1', '1', '0', NULL, NULL, '1', 'admin', '2023-07-04 11:23:05', NULL, NULL, 100, '新朔铁路科技', '0');
+INSERT INTO `xsrw-cloud`.t_location
+(id, code, name, area_id, reservoir_id, category_id, deposit_category_id, unit_id, same_material_flag, same_batch_flag, upper_limit, location_row, location_column, location_plies, goods_allocation_status, status, location_type, pallet_num, good_shelf_id, remark, create_by, create_time, update_by, update_time, dept_id, dept_name, del_flag)
+VALUES(32, 'KW121-A8AC', '库位-2楼-百货', 6, 6, NULL, NULL, NULL, '0', '0', NULL, 1, 2, 1, '1', '1', '0', NULL, NULL, NULL, 'admin', '2023-07-04 11:23:49', NULL, NULL, 100, '新朔铁路科技', '0');
+INSERT INTO `xsrw-cloud`.t_location
+(id, code, name, area_id, reservoir_id, category_id, deposit_category_id, unit_id, same_material_flag, same_batch_flag, upper_limit, location_row, location_column, location_plies, goods_allocation_status, status, location_type, pallet_num, good_shelf_id, remark, create_by, create_time, update_by, update_time, dept_id, dept_name, del_flag)
+VALUES(349, 'KW111-F68C', '地堆库位01号', 7, 11, NULL, NULL, NULL, '0', '0', NULL, 1, 1, 1, '1', '1', '1', NULL, NULL, NULL, 'admin', '2023-07-10 11:39:50', NULL, NULL, 100, '新朔铁路科技', '0');
+INSERT INTO `xsrw-cloud`.t_location
+(id, code, name, area_id, reservoir_id, category_id, deposit_category_id, unit_id, same_material_flag, same_batch_flag, upper_limit, location_row, location_column, location_plies, goods_allocation_status, status, location_type, pallet_num, good_shelf_id, remark, create_by, create_time, update_by, update_time, dept_id, dept_name, del_flag)
+VALUES(350, 'KW121-3E93', '地堆库位02号', 7, 11, NULL, NULL, NULL, '0', '0', NULL, 1, 2, 1, '1', '1', '1', NULL, NULL, NULL, 'admin', '2023-07-10 11:40:12', NULL, NULL, 100, '新朔铁路科技', '0');
+INSERT INTO `xsrw-cloud`.t_location
+(id, code, name, area_id, reservoir_id, category_id, deposit_category_id, unit_id, same_material_flag, same_batch_flag, upper_limit, location_row, location_column, location_plies, goods_allocation_status, status, location_type, pallet_num, good_shelf_id, remark, create_by, create_time, update_by, update_time, dept_id, dept_name, del_flag)
+VALUES(351, 'KW211-3F94', '地堆库位03号', 7, 12, NULL, NULL, NULL, '0', '0', NULL, 2, 1, 1, '1', '1', '1', NULL, NULL, NULL, 'admin', '2023-07-10 11:40:32', NULL, NULL, 100, '新朔铁路科技', '0');
+INSERT INTO `xsrw-cloud`.t_location
+(id, code, name, area_id, reservoir_id, category_id, deposit_category_id, unit_id, same_material_flag, same_batch_flag, upper_limit, location_row, location_column, location_plies, goods_allocation_status, status, location_type, pallet_num, good_shelf_id, remark, create_by, create_time, update_by, update_time, dept_id, dept_name, del_flag)
+VALUES(352, 'KW221-530F', '地堆库位04号', 7, 12, NULL, NULL, NULL, '0', '0', NULL, 2, 2, 1, '1', '1', '1', NULL, NULL, NULL, 'admin', '2023-07-10 11:40:46', NULL, NULL, 100, '新朔铁路科技', '0');
+
+
+INSERT INTO `xsrw-cloud`.t_tray
+(id, code, area_id, location_id, reservoir_id, `type`, status, tray_category, label_template_type, label_template_id, remark, create_by, create_time, update_by, update_time, dept_id, dept_name, del_flag, weight, max_weight)
+VALUES(3, 'T20230704000001', NULL, NULL, NULL, '5', '0', '1', '0', NULL, '默认托盘', 'admin', '2023-07-04 11:27:14', NULL, NULL, 100, '新朔铁路科技', '0', 200.0, 2000.0);
+INSERT INTO `xsrw-cloud`.t_tray
+(id, code, area_id, location_id, reservoir_id, `type`, status, tray_category, label_template_type, label_template_id, remark, create_by, create_time, update_by, update_time, dept_id, dept_name, del_flag, weight, max_weight)
+VALUES(4, 'T20230704000002', NULL, NULL, NULL, '5', '0', '2', '0', NULL, '默认料箱', 'admin', '2023-07-04 11:27:39', 'admin', '2023-07-04 11:28:26', 100, '新朔铁路科技', '0', 1.0, 100.0);
+INSERT INTO `xsrw-cloud`.t_tray
+(id, code, area_id, location_id, reservoir_id, `type`, status, tray_category, label_template_type, label_template_id, remark, create_by, create_time, update_by, update_time, dept_id, dept_name, del_flag, weight, max_weight)
+VALUES(5, 'T20230704000003', NULL, NULL, NULL, '5', '0', '3', '0', NULL, '默认货笼', 'admin', '2023-07-04 11:28:17', NULL, NULL, 100, '新朔铁路科技', '0', 50.0, 5000.0);
+INSERT INTO `xsrw-cloud`.t_tray
+(id, code, area_id, location_id, reservoir_id, `type`, status, tray_category, label_template_type, label_template_id, remark, create_by, create_time, update_by, update_time, dept_id, dept_name, del_flag, weight, max_weight)
+VALUES(6, 'T20230704000004', NULL, NULL, NULL, '5', '0', '1', '0', NULL, '默认托盘', 'admin', '2023-07-04 11:27:14', NULL, NULL, 100, '新朔铁路科技', '0', 200.0, 2000.0);
+INSERT INTO `xsrw-cloud`.t_tray
+(id, code, area_id, location_id, reservoir_id, `type`, status, tray_category, label_template_type, label_template_id, remark, create_by, create_time, update_by, update_time, dept_id, dept_name, del_flag, weight, max_weight)
+VALUES(7, 'T20230704000005', NULL, NULL, NULL, '5', '0', '2', '0', NULL, '默认料箱', 'admin', '2023-07-04 11:27:39', 'admin', '2023-07-04 11:28:26', 100, '新朔铁路科技', '0', 1.0, 100.0);
+INSERT INTO `xsrw-cloud`.t_tray
+(id, code, area_id, location_id, reservoir_id, `type`, status, tray_category, label_template_type, label_template_id, remark, create_by, create_time, update_by, update_time, dept_id, dept_name, del_flag, weight, max_weight)
+VALUES(8, 'T20230704000006', NULL, NULL, NULL, '5', '0', '3', '0', NULL, '默认货笼', 'admin', '2023-07-04 11:28:17', NULL, NULL, 100, '新朔铁路科技', '0', 50.0, 5000.0);
+
+INSERT INTO `xsrw-cloud`.t_category
+(id, name, remark, create_by, create_time, update_by, update_time, dept_id, dept_name, del_flag)
+VALUES(1, '办公用品', NULL, 'admin', '2023-07-10 14:20:52', NULL, NULL, 100, '新朔铁路科技', '0');
+INSERT INTO `xsrw-cloud`.t_category
+(id, name, remark, create_by, create_time, update_by, update_time, dept_id, dept_name, del_flag)
+VALUES(2, '生鲜', NULL, 'admin', '2023-07-10 14:20:56', NULL, NULL, 100, '新朔铁路科技', '0');
+INSERT INTO `xsrw-cloud`.t_category
+(id, name, remark, create_by, create_time, update_by, update_time, dept_id, dept_name, del_flag)
+VALUES(3, '生活用品', NULL, 'admin', '2023-07-10 14:21:03', NULL, NULL, 100, '新朔铁路科技', '0');
+
+INSERT INTO `xsrw-cloud`.t_contacts_unit
+(id, name, `type`, address, phone, remark, create_by, create_time, update_by, update_time, dept_id, dept_name, del_flag, contact_person, contact_person_id)
+VALUES(1, '供应商01', '1', '河南', '18888888888', NULL, 'admin', '2023-07-10 14:19:50', NULL, NULL, 100, '新朔铁路科技', '0', NULL, NULL);
+INSERT INTO `xsrw-cloud`.t_contacts_unit
+(id, name, `type`, address, phone, remark, create_by, create_time, update_by, update_time, dept_id, dept_name, del_flag, contact_person, contact_person_id)
+VALUES(2, '供应商02', '3', '河南', '13666666666', NULL, 'admin', '2023-07-10 14:20:05', NULL, NULL, 100, '新朔铁路科技', '0', NULL, NULL);
+
+INSERT INTO `xsrw-cloud`.t_material
+(id, code, name, specifications, unit_id, contacts_unit_id, batch_flag, batch_attr_id, base_unit_id, same_material_flag, same_batch_flag, category_id, inspection_method, expiration_flag, stock_max, stock_min, expiration_date, rough_weight, net_weight, finance_voucher_no, unit_price, description, material_length, material_height, material_width, remark, create_by, create_time, update_by, update_time, dept_id, dept_name, del_flag, img)
+VALUES(1, 'W00000053', '物料01', NULL, 16, 1, '1', 4, NULL, NULL, NULL, 1, NULL, '1', 10000, 1, 360, 10.0, NULL, NULL, 100.0, NULL, 10, 10, 10, NULL, 'admin', '2023-07-10 14:21:47', NULL, NULL, 100, '新朔铁路科技', '0', NULL);
+INSERT INTO `xsrw-cloud`.t_material
+(id, code, name, specifications, unit_id, contacts_unit_id, batch_flag, batch_attr_id, base_unit_id, same_material_flag, same_batch_flag, category_id, inspection_method, expiration_flag, stock_max, stock_min, expiration_date, rough_weight, net_weight, finance_voucher_no, unit_price, description, material_length, material_height, material_width, remark, create_by, create_time, update_by, update_time, dept_id, dept_name, del_flag, img)
+VALUES(2, 'W00000054', '物料02', NULL, 16, 2, '1', 4, NULL, NULL, NULL, 1, NULL, '0', 10000, 1, 0, 10.0, NULL, NULL, 200.0, NULL, 10, 10, 10, NULL, 'admin', '2023-07-10 14:22:12', NULL, NULL, 100, '新朔铁路科技', '0', NULL);
+INSERT INTO `xsrw-cloud`.t_material
+(id, code, name, specifications, unit_id, contacts_unit_id, batch_flag, batch_attr_id, base_unit_id, same_material_flag, same_batch_flag, category_id, inspection_method, expiration_flag, stock_max, stock_min, expiration_date, rough_weight, net_weight, finance_voucher_no, unit_price, description, material_length, material_height, material_width, remark, create_by, create_time, update_by, update_time, dept_id, dept_name, del_flag, img)
+VALUES(3, 'W00000055', '物料03', NULL, 1, 1, '1', 4, NULL, NULL, NULL, 2, NULL, '1', 10000, 1, 60, 10.0, NULL, NULL, 150.0, NULL, 10, 10, 10, NULL, 'admin', '2023-07-10 14:22:35', NULL, NULL, 100, '新朔铁路科技', '0', NULL);
+INSERT INTO `xsrw-cloud`.t_material
+(id, code, name, specifications, unit_id, contacts_unit_id, batch_flag, batch_attr_id, base_unit_id, same_material_flag, same_batch_flag, category_id, inspection_method, expiration_flag, stock_max, stock_min, expiration_date, rough_weight, net_weight, finance_voucher_no, unit_price, description, material_length, material_height, material_width, remark, create_by, create_time, update_by, update_time, dept_id, dept_name, del_flag, img)
+VALUES(4, 'W00000056', '物料04', NULL, 7, 2, '1', 4, NULL, NULL, NULL, 3, NULL, '1', 10000, 1, 180, 10.0, NULL, NULL, 80.0, NULL, 10, 10, 10, NULL, 'admin', '2023-07-10 14:23:01', NULL, NULL, 100, '新朔铁路科技', '0', NULL);
+
+
+
+-- -------不需要清空的表--------
+t_batch_attr,t_code_config,t_label_template,t_out_strategy,t_put_away_rule,t_put_away_rule_detail
+
+
+
+
+
+
+
+
+

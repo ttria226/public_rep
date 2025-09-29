@@ -1,0 +1,4 @@
+官网地址.https://www.zebra.cn/cn/zh.html  
+型号：zt411  抗金属版
+1.打印机的文档：https://www.zebra.cn/cn/zh/support-downloads/printers/passive-rfid/zt411-on-metal-rfid-printer.html
+2.javaDemo资料参考：https://blog.csdn.net/qq_40114983/article/details/125502556

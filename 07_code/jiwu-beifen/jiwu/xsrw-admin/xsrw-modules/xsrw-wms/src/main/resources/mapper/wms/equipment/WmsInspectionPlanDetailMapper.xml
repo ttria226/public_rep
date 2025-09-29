@@ -1,0 +1,38 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper
+PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+"http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.xsrw.wms.equipment.mapper.WmsInspectionPlanDetailMapper">
+
+    <sql id="selectWmsInspectionPlanDetailVo">
+        select inspectionplandetail.id, inspectionplandetail.plan_id, inspectionplandetail.equipment_id, inspectionplandetail.create_by, inspectionplandetail.remark, inspectionplandetail.create_time, inspectionplandetail.update_by, inspectionplandetail.update_time, inspectionplandetail.dept_id, inspectionplandetail.dept_name, inspectionplandetail.del_flag,inspectionplandetail.sort
+        from d_inspection_plan_detail inspectionplandetail
+    </sql>
+
+    <select id="selectWmsInspectionPlanDetailList" parameterType="com.xsrw.wms.equipment.domain.WmsInspectionPlanDetail" resultType="com.xsrw.wms.equipment.domain.WmsInspectionPlanDetail">
+        <include refid="selectWmsInspectionPlanDetailVo"/>
+        <if test="params.dataScope != null  and params.dataScope != ''">
+            inner join sys_user u on u.user_name = inspectionplandetail.create_by and u.status = '0'
+            inner join sys_dept d on u.dept_id = d.dept_id and d.status = '0'
+        </if>
+        <where>
+            inspectionplandetail.del_flag = '0'
+            <if test="planId != null "> and inspectionplandetail.plan_id = #{planId}</if>
+            <if test="equipmentId != null "> and inspectionplandetail.equipment_id = #{equipmentId}</if>
+        </where>
+        <!-- 数据范围过滤 -->
+        ${params.dataScope}
+    </select>
+
+    <delete id="deleteWmsInspectionPlanDetailById" parameterType="Long">
+         update d_inspection_plan_detail set del_flag = '1' where id = #{id}
+    </delete>
+
+    <delete id="deleteWmsInspectionPlanDetailByIds" parameterType="String">
+        update d_inspection_plan_detail set del_flag = '1' where id in
+        <foreach item="id" collection="array" open="(" separator="," close=")">
+            #{id}
+        </foreach>
+    </delete>
+
+</mapper>

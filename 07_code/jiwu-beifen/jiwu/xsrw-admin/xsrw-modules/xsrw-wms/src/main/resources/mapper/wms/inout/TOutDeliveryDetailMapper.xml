@@ -1,0 +1,81 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper
+PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+"http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.xsrw.wms.inout.mapper.TOutDeliveryDetailMapper">
+
+    <sql id="selectTOutDeliveryDetailVo">
+        select a.id, a.out_delivery_id, a.material_id, a.next_flag,a.predict_count,a.predict_receive_count, a.receive_count,a.small_predict_count,a.small_receive_count, a.remark, a.create_by, a.create_time, a.update_by, a.update_time, a.dept_id, a.dept_name, a.del_flag
+        from t_out_delivery_detail a
+    </sql>
+
+    <select id="selectTOutDeliveryDetailList" parameterType="com.xsrw.wms.inout.domain.TOutDeliveryDetail" resultType="com.xsrw.wms.inout.domain.TOutDeliveryDetail">
+        <include refid="selectTOutDeliveryDetailVo"/>
+        <if test="params.dataScope != null  and params.dataScope != ''">
+            inner join sys_user u on u.user_name = a.create_by and u.status = '0'
+            inner join sys_dept d on u.dept_id = d.dept_id and d.status = '0'
+        </if>
+        <where>
+            a.del_flag = '0'
+            <if test="outDeliveryId != null "> and a.out_delivery_id = #{outDeliveryId}</if>
+            <if test="materialId != null "> and a.material_id = #{materialId}</if>
+            <if test="nextFlag != null  and nextFlag != ''"> and a.next_flag = #{nextFlag}</if>
+            <if test="predictCount != null "> and a.predict_count = #{predictCount}</if>
+            <if test="receiveCount != null "> and a.receive_count = #{receiveCount}</if>
+        </where>
+        <!-- 数据范围过滤 -->
+        ${params.dataScope}
+    </select>
+
+    <select id="selectTOutDeliveryDetailVOList" parameterType="com.xsrw.wms.inout.domain.TOutDeliveryDetail" resultType="com.xsrw.wms.inout.domain.vo.TOutDeliveryDetailVO">
+        select
+        a.id, a.out_delivery_id, a.material_id, a.next_flag, a.predict_count, a.predict_receive_count,
+        a.receive_count, a.small_predict_count, a.small_receive_count, a.remark, a.create_by, a.create_time,a.dept_name,
+        b.`type` , b.code as origin_code ,
+        m.code as materialCode, m.name as materialName,m.specifications as materialSpecifications,
+        tu.name as unitName
+        from t_out_delivery_detail a
+        join t_out_delivery b on a.out_delivery_id = b.id and b.next_flag = 1 and b.del_flag = 0 and b.delivery_module = 1
+        left join t_material m on a.material_id = m.id
+        left join t_unit tu on m.unit_id = tu.id
+        <if test="params.dataScope != null  and params.dataScope != ''">
+            inner join sys_user u on u.user_name = a.create_by and u.status = '0'
+            inner join sys_dept d on u.dept_id = d.dept_id and d.status = '0'
+        </if>
+        <where>
+            a.del_flag = '0'
+             <if test="padFlag != null">and a.next_flag != '1'</if>
+             <if test="originCode != null "> and b.code like "%" #{originCode} "%"</if>
+             <if test="materialCode != null and materialCode!=''"> and m.code like '%' #{materialCode} '%'</if>
+             <if test="type != null "> and b.type = #{type}</if>
+            <if test="status != null "> and a.next_flag = #{status}</if>
+        </where>
+        order by a.create_time desc
+        <!-- 数据范围过滤 -->
+        ${params.dataScope}
+    </select>
+
+    <delete id="deleteTOutDeliveryDetailById" parameterType="Long">
+         update t_out_delivery_detail set del_flag = '1' where id = #{id}
+    </delete>
+
+    <delete id="deleteTOutDeliveryDetailByIds" parameterType="String">
+        update t_out_delivery_detail set del_flag = '1' where id in
+        <foreach item="id" collection="array" open="(" separator="," close=")">
+            #{id}
+        </foreach>
+    </delete>
+
+    <select id="getStockInfoByDeliveryId" resultType="com.xsrw.wms.stock.domain.dto.TStockInDTO">
+        select
+	        c.id as stockId, c.area_id ,c.location_id ,c.material_id ,c.count ,c.available_count ,c.batch_code,
+	        c.origin_type ,c.tray_id ,c.unit_id,
+	        d.code as originCode
+        from t_out_delivery_detail a
+        left join t_task_out b on a.id = b.out_delivery_detail_id
+        left join t_stock c on b.stock_id = c.id
+        left join t_out_delivery d on a.out_delivery_id = d.id
+        where a.del_flag = '0' and a.out_delivery_id = #{deliveryId}
+    </select>
+
+</mapper>

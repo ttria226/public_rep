@@ -1,0 +1,88 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper
+PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+"http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.xsrw.wms.check.mapper.TCheckDeliveryMapper">
+
+    <sql id="selectTCheckDeliveryVo">
+        select tcheckdelivery.id, tcheckdelivery.check_type, tcheckdelivery.material_id, tcheckdelivery.area_id, tcheckdelivery.reservoir_id, tcheckdelivery.auditor, tcheckdelivery.status, tcheckdelivery.remark, tcheckdelivery.create_by, tcheckdelivery.create_time, tcheckdelivery.update_by, tcheckdelivery.update_time, tcheckdelivery.dept_id, tcheckdelivery.dept_name, tcheckdelivery.del_flag
+        from t_check_delivery tcheckdelivery
+    </sql>
+
+    <select id="selectTCheckDeliveryList" parameterType="com.xsrw.wms.check.domain.TCheckDelivery" resultType="com.xsrw.wms.check.domain.TCheckDelivery">
+        <include refid="selectTCheckDeliveryVo"/>
+        <if test="params.dataScope != null  and params.dataScope != ''">
+            inner join sys_user u on u.user_name = tcheckdelivery.create_by and u.status = '0'
+            inner join sys_dept d on u.dept_id = d.dept_id and d.status = '0'
+        </if>
+        <where>
+            tcheckdelivery.del_flag = '0'
+            <if test="checkType != null  and checkType != ''"> and tcheckdelivery.check_type = #{checkType}</if>
+            <if test="materialId != null "> and tcheckdelivery.material_id = #{materialId}</if>
+            <if test="areaId != null "> and tcheckdelivery.area_id = #{areaId}</if>
+            <if test="reservoirId != null "> and tcheckdelivery.reservoir_id = #{reservoirId}</if>
+            <if test="auditor != null  and auditor != ''"> and tcheckdelivery.auditor = #{auditor}</if>
+            <if test="status != null  and status != ''"> and tcheckdelivery.status = #{status}</if>
+        </where>
+        <!-- 数据范围过滤 -->
+        ${params.dataScope}
+    </select>
+
+    <select id="selectCheckDeliveryList" parameterType="com.xsrw.wms.check.domain.dto.CheckDeliveryDTO" resultType="com.xsrw.wms.check.domain.vo.CheckDeliveryVO">
+        select
+        t1.id,
+        t1.dept_id,
+        t1.dept_name,
+        t1.area_id,
+        t1.reservoir_id,
+        t1.material_id,
+        t1.check_type,
+        t1.create_by,
+        t1.create_time,
+        t1.start_time,
+        t1.end_time,
+        t1.random_num,
+        t1.tray_type,
+        t2.available_count,
+        t2.library_count
+        from t_check_delivery t1
+        left join t_stock_main t2 ON t1.material_id = t2.material_id
+        left join t_material t3 on t3.id = t1.material_id
+        where t1.del_flag = '0'
+        <if test="materialName != null and materialName != ''"> and t3.name like concat('%', #{materialName}, '%')</if>
+        <if test="status != null  and status != ''">and t1.status = #{status}</if>
+        <if test="checkType != null  and checkType != ''">and t1.check_type = #{checkType}</if>
+        <if test="deptId != null ">and t1.dept_id = #{deptId}</if>
+        <if test="areaId != null ">and t1.area_id = #{areaId}</if>
+        <if test="reservoirId != null ">and t1.reservoir_id = #{reservoirId}</if>
+        <if test="ids != null and ids.size() > 0"> and t1.id in
+            <foreach item="id" collection="ids" open="(" separator="," close=")">
+                #{id}
+            </foreach>
+        </if>
+        <if test="materialIds != null and materialIds.size() > 0"> and t1.material_id in
+            <foreach item="materialId" collection="materialIds" open="(" separator="," close=")">
+                #{materialId}
+            </foreach>
+        </if>
+        <if test="startTime != null and startTime != '' and endTime != null and endTime != ''">
+            and t1.create_time between date_format(#{startTime},'%y%m%d') and date_format(#{endTime},'%y%m%d')
+        </if>
+        <if test="trayType != null and trayType != ''">
+            and t1.tray_type = #{trayType}
+        </if>
+        order by t1.create_time desc
+    </select>
+
+    <delete id="deleteTCheckDeliveryById" parameterType="Long">
+         update t_check_delivery set del_flag = '1' where id = #{id}
+    </delete>
+
+    <delete id="deleteTCheckDeliveryByIds" parameterType="String">
+        update t_check_delivery set del_flag = '1' where id in
+        <foreach item="id" collection="array" open="(" separator="," close=")">
+            #{id}
+        </foreach>
+    </delete>
+
+</mapper>
